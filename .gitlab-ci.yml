@@ -1,0 +1,175 @@
+stages:
+  - pre-check
+  - build
+  - test
+
+before_script:
+  - if [ -d $CARGO_TARGET_DIR ]; then find $CARGO_TARGET_DIR | wc --lines; du -sh $CARGO_TARGET_DIR; fi
+  - if [ -d $CARGO_HOME ]; then find $CARGO_HOME | wc --lines; du -sh $CARGO_HOME; fi
+  - rustc --version
+  - cargo --version
+  - clang --version
+
+after_script:
+  - if [ -d $CARGO_TARGET_DIR ]; then find $CARGO_TARGET_DIR -type f -atime +7 -delete; fi
+  - if [ -d $CARGO_TARGET_DIR ]; then du -sh $CARGO_TARGET_DIR; fi
+  - if [ -d $CARGO_HOME ]; then du -sh $CARGO_HOME; fi
+
+build-bullseye:
+  tags:
+    - linux
+  stage: build
+  image: registry.gitlab.com/sequoia-pgp/build-docker-image/bullseye-prebuild:latest
+  dependencies:
+    - codespell
+  script:
+    - make
+    - if ! git diff --quiet Cargo.lock ; then echo "Cargo.lock changed.  Please add the change to the corresponding commit." ; false ; fi
+    - if ! git diff --quiet ; then echo "The build changed the source.  Please investigate." ; git diff ; fi
+  variables:
+    CARGO_TARGET_DIR: /target
+    CARGO_HOME: /cargo
+    RUSTFLAGS: -D warnings -A unused-parens
+  after_script: []
+
+bullseye:
+  tags:
+    - linux
+  stage: build
+  image: registry.gitlab.com/sequoia-pgp/build-docker-image/bullseye-prebuild:latest
+  dependencies:
+    - codespell
+  script:
+    - SEQUOIA_CTEST_VALGRIND=/usr/bin/valgrind make test
+  variables:
+    CARGO_TARGET_DIR: /target
+    CARGO_HOME: /cargo
+    RUSTFLAGS: -D warnings -A unused-parens
+  after_script: []
+
+bullseye:arm64:
+  tags:
+    - docker-arm64
+  only:
+    variables:
+      # Forks of this project most likely do not have an arm64 runner
+      - $CI_PROJECT_NAMESPACE == "sequoia-pgp"
+  when: manual
+  stage: build
+  image: registry.gitlab.com/sequoia-pgp/build-docker-image/bullseye-prebuild-arm64:latest
+  dependencies:
+    - codespell
+  script:
+    # valgrind reports a false positive, see !1035. Run the tests without it for now.
+    - make test
+  variables:
+    CARGO_TARGET_DIR: /target
+    CARGO_HOME: /cargo
+    RUSTFLAGS: -D warnings -A unused-parens
+  after_script: []
+
+all_commits:
+  # Test each commit up to main, to facilitate bisecting.
+  stage: test
+  image: registry.gitlab.com/sequoia-pgp/build-docker-image/rust-stable-prebuild:latest
+  needs: ["rust-stable"]
+  script:
+    - .ci/all_commits.sh
+  variables:
+    CARGO_TARGET_DIR: /target
+    CARGO_HOME: /cargo
+    RUSTFLAGS: -D warnings -A unused-parens
+    GIT_STRATEGY: clone
+
+all_commits:arm64:
+  # Test each commit up to main, to facilitate bisecting.
+  tags:
+    - docker-arm64
+  stage: test
+  image: registry.gitlab.com/sequoia-pgp/build-docker-image/rust-stable-prebuild-arm64:latest
+  needs: ["rust-stable:arm64"]
+  only:
+    refs:
+      - /arm64/i # refs containing 'arm64' keyword
+      - tags
+      - web
+      - scheduled
+    variables:
+      # Forks of this project most likely do not have an arm64 runner
+      - $CI_PROJECT_NAMESPACE == "sequoia-pgp"
+  when: manual
+  except:
+    # Do not run for pushes to the pep-engine branch.
+    - /^pep-engine$/
+  script:
+    - .ci/all_commits.sh
+  variables:
+    CARGO_TARGET_DIR: /target
+    CARGO_HOME: /cargo
+    RUSTFLAGS: -D warnings -A unused-parens
+    GIT_STRATEGY: clone
+
+codespell:
+  tags:
+    - linux
+  stage: pre-check
+  image: registry.gitlab.com/sequoia-pgp/build-docker-image/bullseye:latest
+
+  before_script:
+    - codespell --version
+  script:
+    - make codespell CODESPELL_FLAGS=--summary
+  after_script: []
+
+rust-stable:
+  tags:
+    - linux
+  stage: build
+  image: registry.gitlab.com/sequoia-pgp/build-docker-image/rust-stable-prebuild:latest
+  before_script:
+    - if [ -d $CARGO_TARGET_DIR ]; then find $CARGO_TARGET_DIR | wc --lines; du -sh $CARGO_TARGET_DIR; fi
+    - if [ -d $CARGO_HOME ]; then find $CARGO_HOME | wc --lines; du -sh $CARGO_HOME; fi
+    - rustup override set stable
+    - rustc --version
+    - cargo --version
+    - clang --version
+  script:
+    - make test
+  variables:
+    CARGO_TARGET_DIR: /target
+    CARGO_HOME: /cargo
+    RUSTFLAGS: -D warnings -A unused-parens
+
+rust-stable:arm64:
+  tags:
+    - docker-arm64
+  stage: build
+  image: registry.gitlab.com/sequoia-pgp/build-docker-image/rust-stable-prebuild-arm64:latest
+  only:
+    variables:
+      # Forks of this project most likely do not have an arm64 runner
+      - $CI_PROJECT_NAMESPACE == "sequoia-pgp"
+  when: manual
+  before_script:
+    - if [ -d $CARGO_TARGET_DIR ]; then find $CARGO_TARGET_DIR | wc --lines; du -sh $CARGO_TARGET_DIR; fi
+    - if [ -d $CARGO_HOME ]; then find $CARGO_HOME | wc --lines; du -sh $CARGO_HOME; fi
+    - rustup override set stable
+    - rustc --version
+    - cargo --version
+    - clang --version
+  script:
+    - make test
+  variables:
+    CARGO_TARGET_DIR: /target
+    CARGO_HOME: /cargo
+    RUSTFLAGS: -D warnings -A unused-parens
+
+variables:
+  DEBIAN_FRONTEND: noninteractive
+  CARGO_HOME: $CI_PROJECT_DIR/../cargo
+  CARGO_FLAGS: --color always
+  CARGO_INCREMENTAL: 0
+  RUST_BACKTRACE: full
+  RUSTFLAGS: -D warnings
+  CFLAGS: -Werror
+  QUICKCHECK_GENERATOR_SIZE: 500 # https://github.com/BurntSushi/quickcheck/pull/240
