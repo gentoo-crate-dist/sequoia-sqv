@@ -212,7 +212,7 @@ windows-msvc:
     - rustc --version --verbose
     - cargo --version
   script:
-    - cargo test --no-default-features --features crypto-cng
+    - cargo test --no-fail-fast --no-default-features --features crypto-cng
   after_script: []
   variables:
     CFLAGS: "" # Silence some C warnings when compiling with MSVC
@@ -237,7 +237,7 @@ windows-msvc-32:
     - rustc --version --verbose
     - cargo --version
   script:
-    - cargo test --no-default-features --features crypto-cng
+    - cargo test --no-fail-fast --no-default-features --features crypto-cng
   after_script: []
   variables:
     CFLAGS: "" # Silence some C warnings when compiling with MSVC
