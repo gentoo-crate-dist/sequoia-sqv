@@ -164,6 +164,84 @@ rust-stable:arm64:
     CARGO_HOME: /cargo
     RUSTFLAGS: -D warnings -A unused-parens
 
+
+windows-gnu:
+  tags:
+    - win
+    - win2019
+  stage: build
+  image: registry.gitlab.com/sequoia-pgp/build-docker-image/windows-gnu
+  # This job takes ~20 minutes to run, let's only execute it manually or for
+  # scheduled builds, otherwise this will stall MRs often not related to Windows
+  only:
+    refs:
+      - /windows/i # refs containing 'windows' keyword
+      - tags
+      - web
+      - scheduled
+    variables:
+      # Forks of this project most likely use gitlab's shared windows runners, which
+      # do not use the docker executor, so disable the windows jobs for forks.
+      - $CI_PROJECT_NAMESPACE == "sequoia-pgp"
+  before_script:
+    - clang -v
+    - rustc --version --verbose
+    - cargo --version
+  script:
+    - cargo test
+    # https://github.com/rust-lang/cargo/issues/5015
+    - cargo test --no-default-features --features crypto-cng
+  after_script: []
+  variables:
+    CFLAGS: "" # Silence some C warnings when compiling under Windows
+
+windows-msvc:
+  tags:
+    - win
+    - win2019
+  stage: build
+  image: registry.gitlab.com/sequoia-pgp/build-docker-image/windows-msvc
+  only:
+    variables:
+      # Forks of this project most likely use gitlab's shared windows runners, which
+      # do not use the docker executor, so disable the windows jobs for forks.
+      - $CI_PROJECT_NAMESPACE == "sequoia-pgp"
+  before_script:
+    - rustup default stable-x86_64-pc-windows-msvc
+    - rustup show
+    - rustc --version --verbose
+    - cargo --version
+  script:
+    - cargo test --no-default-features --features crypto-cng
+  after_script: []
+  variables:
+    CFLAGS: "" # Silence some C warnings when compiling with MSVC
+
+windows-msvc-32:
+  tags:
+    - win
+    - win2019
+  stage: build
+  image:
+    name: registry.gitlab.com/sequoia-pgp/build-docker-image/windows-msvc
+    # Set up a 32-bit environment with VsDevCmd.bat -arch=x86, line copied from Dockerfile.windows.msvc
+    entrypoint: ["C:\\BuildTools\\Common7\\Tools\\VsDevCmd.bat", "-arch=x86", "&&", "type", "README", "&&", "powershell.exe", "-NoLogo", "-ExecutionPolicy", "Bypass"]
+  only:
+    variables:
+      # Forks of this project most likely use gitlab's shared windows runners, which
+      # do not use the docker executor, so disable the windows jobs for forks.
+      - $CI_PROJECT_NAMESPACE == "sequoia-pgp"
+  before_script:
+    - rustup default stable-i686-pc-windows-msvc
+    - rustup show
+    - rustc --version --verbose
+    - cargo --version
+  script:
+    - cargo test --no-default-features --features crypto-cng
+  after_script: []
+  variables:
+    CFLAGS: "" # Silence some C warnings when compiling with MSVC
+
 variables:
   DEBIAN_FRONTEND: noninteractive
   CARGO_HOME: $CI_PROJECT_DIR/../cargo
