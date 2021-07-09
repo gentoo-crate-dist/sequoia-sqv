@@ -1,9 +1,5 @@
-
-use assert_cli::Assert;
-
-fn p(filename: &str) -> String {
-    format!("../openpgp/tests/data/{}", filename)
-}
+use assert_cmd::Command;
+use std::path;
 
 /// Asserts that multiple signatures from the same Cert are properly
 /// ignored.
@@ -11,13 +7,17 @@ fn p(filename: &str) -> String {
 fn ignore_multiple_signatures() {
     // Multiple signatures from the same Cert are ignored, and fails to
     // meet the threshold.
-    Assert::cargo_binary("sqv")
-        .with_args(
-            &["--keyring",
-              &p("keys/emmelie-dorothea-dina-samantha-awina-ed25519.pgp"),
-              "--signatures=2",
-              &p("messages/a-cypherpunks-manifesto.txt.ed25519.sig.duplicated"),
-              &p("messages/a-cypherpunks-manifesto.txt")])
-        .fails()
-        .unwrap();
+    Command::cargo_bin("sqv")
+        .unwrap()
+        .current_dir(path::Path::new("tests").join("data"))
+        .args(&[
+            "--keyring",
+            "emmelie-dorothea-dina-samantha-awina-ed25519.pgp",
+            "--signatures=2",
+            "a-cypherpunks-manifesto.txt.ed25519.sig.duplicated",
+            "a-cypherpunks-manifesto.txt",
+        ])
+        .assert()
+        .failure()
+        .stdout(b"8E8C33FA4626337976D97978069C0C348DD82C19\n".as_ref());
 }

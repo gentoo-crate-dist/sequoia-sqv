@@ -40,17 +40,21 @@
 
 #[cfg(test)]
 mod integration {
-    use assert_cli::Assert;
+    use assert_cmd::assert::Assert;
+    use assert_cmd::Command;
     use std::path;
 
     fn sqv(keyring: &str, sig: &str) -> Assert {
-        Assert::cargo_binary("sqv")
+        Command::cargo_bin("sqv")
+            .unwrap()
             .current_dir(path::Path::new("tests").join("data"))
-            .with_args(
-                &["--keyring",
-                  &format!("revoked-key-cert-{}.pgp", keyring),
-                  &format!("revoked-key-sig-{}.pgp", sig),
-                  "msg.txt"])
+            .args(&[
+                "--keyring",
+                &format!("revoked-key-cert-{}.pgp", keyring),
+                &format!("revoked-key-sig-{}.pgp", sig),
+                "msg.txt",
+            ])
+            .assert()
     }
 
     /// Tests flavor 0, primary key signs and is revoked.
@@ -72,15 +76,15 @@ mod integration {
     #[test]
     fn not_revoked() {
         let c = "not-revoked";
-        f0(c, "t0").fails().unwrap();
-        f0(c, "t1-t2").unwrap();
-        f0(c, "t2-t3").unwrap();
-        f0(c, "t3-now").unwrap();
+        f0(c, "t0").failure();
+        f0(c, "t1-t2").success();
+        f0(c, "t2-t3").success();
+        f0(c, "t3-now").success();
 
-        f1(c, "t0").fails().unwrap();
-        f1(c, "t1-t2").fails().unwrap();
-        f1(c, "t2-t3").unwrap();
-        f1(c, "t3-now").unwrap();
+        f1(c, "t0").failure();
+        f1(c, "t1-t2").failure();
+        f1(c, "t2-t3").success();
+        f1(c, "t3-now").success();
 
         // f2 is not used here, because we don't have any revocations.
     }
@@ -89,96 +93,166 @@ mod integration {
     #[test]
     fn revoked_no_subpacket() {
         let c = "revoked-no_subpacket";
-        f0(c, "t0").fails().unwrap();
-        f0(c, "t1-t2").fails().and().stderr().contains("revoked").unwrap();
-        f0(c, "t2-t3").fails().and().stderr().contains("revoked").unwrap();
-        f0(c, "t3-now").fails().and().stderr().contains("revoked").unwrap();
+        f0(c, "t0").failure();
+        f0(c, "t1-t2")
+            .failure()
+            .stderr(predicates::str::contains("revoked"));
+        f0(c, "t2-t3")
+            .failure()
+            .stderr(predicates::str::contains("revoked"));
+        f0(c, "t3-now")
+            .failure()
+            .stderr(predicates::str::contains("revoked"));
 
-        f1(c, "t0").fails().unwrap();
-        f1(c, "t1-t2").fails().unwrap();
-        f1(c, "t2-t3").fails().and().stderr().contains("revoked").unwrap();
-        f1(c, "t3-now").fails().and().stderr().contains("revoked").unwrap();
+        f1(c, "t0").failure();
+        f1(c, "t1-t2").failure();
+        f1(c, "t2-t3")
+            .failure()
+            .stderr(predicates::str::contains("revoked"));
+        f1(c, "t3-now")
+            .failure()
+            .stderr(predicates::str::contains("revoked"));
 
-        f2(c, "t0").fails().unwrap();
-        f2(c, "t1-t2").fails().unwrap();
-        f2(c, "t2-t3").fails().and().stderr().contains("revoked").unwrap();
-        f2(c, "t3-now").fails().and().stderr().contains("revoked").unwrap();
+        f2(c, "t0").failure();
+        f2(c, "t1-t2").failure();
+        f2(c, "t2-t3")
+            .failure()
+            .stderr(predicates::str::contains("revoked"));
+        f2(c, "t3-now")
+            .failure()
+            .stderr(predicates::str::contains("revoked"));
     }
 
     #[test]
     fn revoked_unspecified() {
         let c = "revoked-unspecified";
-        f0(c, "t0").fails().unwrap();
-        f0(c, "t1-t2").fails().and().stderr().contains("revoked").unwrap();
-        f0(c, "t2-t3").fails().and().stderr().contains("revoked").unwrap();
-        f0(c, "t3-now").fails().and().stderr().contains("revoked").unwrap();
+        f0(c, "t0").failure();
+        f0(c, "t1-t2")
+            .failure()
+            .stderr(predicates::str::contains("revoked"));
+        f0(c, "t2-t3")
+            .failure()
+            .stderr(predicates::str::contains("revoked"));
+        f0(c, "t3-now")
+            .failure()
+            .stderr(predicates::str::contains("revoked"));
 
-        f1(c, "t0").fails().unwrap();
-        f1(c, "t1-t2").fails().unwrap();
-        f1(c, "t2-t3").fails().and().stderr().contains("revoked").unwrap();
-        f1(c, "t3-now").fails().and().stderr().contains("revoked").unwrap();
+        f1(c, "t0").failure();
+        f1(c, "t1-t2").failure();
+        f1(c, "t2-t3")
+            .failure()
+            .stderr(predicates::str::contains("revoked"));
+        f1(c, "t3-now")
+            .failure()
+            .stderr(predicates::str::contains("revoked"));
 
-        f2(c, "t0").fails().unwrap();
-        f2(c, "t1-t2").fails().unwrap();
-        f2(c, "t2-t3").fails().and().stderr().contains("revoked").unwrap();
-        f2(c, "t3-now").fails().and().stderr().contains("revoked").unwrap();
+        f2(c, "t0").failure();
+        f2(c, "t1-t2").failure();
+        f2(c, "t2-t3")
+            .failure()
+            .stderr(predicates::str::contains("revoked"));
+        f2(c, "t3-now")
+            .failure()
+            .stderr(predicates::str::contains("revoked"));
     }
 
     #[test]
     fn revoked_compromised() {
         let c = "revoked-compromised";
-        f0(c, "t0").fails().unwrap();
-        f0(c, "t1-t2").fails().and().stderr().contains("revoked").unwrap();
-        f0(c, "t2-t3").fails().and().stderr().contains("revoked").unwrap();
-        f0(c, "t3-now").fails().and().stderr().contains("revoked").unwrap();
+        f0(c, "t0").failure();
+        f0(c, "t1-t2")
+            .failure()
+            .stderr(predicates::str::contains("revoked"));
+        f0(c, "t2-t3")
+            .failure()
+            .stderr(predicates::str::contains("revoked"));
+        f0(c, "t3-now")
+            .failure()
+            .stderr(predicates::str::contains("revoked"));
 
-        f1(c, "t0").fails().unwrap();
-        f1(c, "t1-t2").fails().unwrap();
-        f1(c, "t2-t3").fails().and().stderr().contains("revoked").unwrap();
-        f1(c, "t3-now").fails().and().stderr().contains("revoked").unwrap();
+        f1(c, "t0").failure();
+        f1(c, "t1-t2").failure();
+        f1(c, "t2-t3")
+            .failure()
+            .stderr(predicates::str::contains("revoked"));
+        f1(c, "t3-now")
+            .failure()
+            .stderr(predicates::str::contains("revoked"));
 
-        f2(c, "t0").fails().unwrap();
-        f2(c, "t1-t2").fails().unwrap();
-        f2(c, "t2-t3").fails().and().stderr().contains("revoked").unwrap();
-        f2(c, "t3-now").fails().and().stderr().contains("revoked").unwrap();
+        f2(c, "t0").failure();
+        f2(c, "t1-t2").failure();
+        f2(c, "t2-t3")
+            .failure()
+            .stderr(predicates::str::contains("revoked"));
+        f2(c, "t3-now")
+            .failure()
+            .stderr(predicates::str::contains("revoked"));
     }
 
     #[test]
     fn revoked_private() {
         let c = "revoked-private";
-        f0(c, "t0").fails().unwrap();
-        f0(c, "t1-t2").fails().and().stderr().contains("revoked").unwrap();
-        f0(c, "t2-t3").fails().and().stderr().contains("revoked").unwrap();
-        f0(c, "t3-now").fails().and().stderr().contains("revoked").unwrap();
+        f0(c, "t0").failure();
+        f0(c, "t1-t2")
+            .failure()
+            .stderr(predicates::str::contains("revoked"));
+        f0(c, "t2-t3")
+            .failure()
+            .stderr(predicates::str::contains("revoked"));
+        f0(c, "t3-now")
+            .failure()
+            .stderr(predicates::str::contains("revoked"));
 
-        f1(c, "t0").fails().unwrap();
-        f1(c, "t1-t2").fails().unwrap();
-        f1(c, "t2-t3").fails().and().stderr().contains("revoked").unwrap();
-        f1(c, "t3-now").fails().and().stderr().contains("revoked").unwrap();
+        f1(c, "t0").failure();
+        f1(c, "t1-t2").failure();
+        f1(c, "t2-t3")
+            .failure()
+            .stderr(predicates::str::contains("revoked"));
+        f1(c, "t3-now")
+            .failure()
+            .stderr(predicates::str::contains("revoked"));
 
-        f2(c, "t0").fails().unwrap();
-        f2(c, "t1-t2").fails().unwrap();
-        f2(c, "t2-t3").fails().and().stderr().contains("revoked").unwrap();
-        f2(c, "t3-now").fails().and().stderr().contains("revoked").unwrap();
+        f2(c, "t0").failure();
+        f2(c, "t1-t2").failure();
+        f2(c, "t2-t3")
+            .failure()
+            .stderr(predicates::str::contains("revoked"));
+        f2(c, "t3-now")
+            .failure()
+            .stderr(predicates::str::contains("revoked"));
     }
 
     #[test]
     fn revoked_unknown() {
         let c = "revoked-unknown";
-        f0(c, "t0").fails().unwrap();
-        f0(c, "t1-t2").fails().and().stderr().contains("revoked").unwrap();
-        f0(c, "t2-t3").fails().and().stderr().contains("revoked").unwrap();
-        f0(c, "t3-now").fails().and().stderr().contains("revoked").unwrap();
+        f0(c, "t0").failure();
+        f0(c, "t1-t2")
+            .failure()
+            .stderr(predicates::str::contains("revoked"));
+        f0(c, "t2-t3")
+            .failure()
+            .stderr(predicates::str::contains("revoked"));
+        f0(c, "t3-now")
+            .failure()
+            .stderr(predicates::str::contains("revoked"));
 
-        f1(c, "t0").fails().unwrap();
-        f1(c, "t1-t2").fails().unwrap();
-        f1(c, "t2-t3").fails().and().stderr().contains("revoked").unwrap();
-        f1(c, "t3-now").fails().and().stderr().contains("revoked").unwrap();
+        f1(c, "t0").failure();
+        f1(c, "t1-t2").failure();
+        f1(c, "t2-t3")
+            .failure()
+            .stderr(predicates::str::contains("revoked"));
+        f1(c, "t3-now")
+            .failure()
+            .stderr(predicates::str::contains("revoked"));
 
-        f2(c, "t0").fails().unwrap();
-        f2(c, "t1-t2").fails().unwrap();
-        f2(c, "t2-t3").fails().and().stderr().contains("revoked").unwrap();
-        f2(c, "t3-now").fails().and().stderr().contains("revoked").unwrap();
+        f2(c, "t0").failure();
+        f2(c, "t1-t2").failure();
+        f2(c, "t2-t3")
+            .failure()
+            .stderr(predicates::str::contains("revoked"));
+        f2(c, "t3-now")
+            .failure()
+            .stderr(predicates::str::contains("revoked"));
     }
 
     /// The soft revocation reasons.  Only the signature dated prior
@@ -187,59 +261,77 @@ mod integration {
     #[test]
     fn revoked_superseded() {
         let c = "revoked-superseded";
-        f0(c, "t0").fails().unwrap();
-        f0(c, "t1-t2").unwrap();
-        f0(c, "t2-t3").fails().and().stderr().contains("revoked").unwrap();
-        f0(c, "t3-now").unwrap();
+        f0(c, "t0").failure();
+        f0(c, "t1-t2").success();
+        f0(c, "t2-t3")
+            .failure()
+            .stderr(predicates::str::contains("revoked"));
+        f0(c, "t3-now").success();
 
-        f1(c, "t0").fails().unwrap();
-        f1(c, "t1-t2").fails().unwrap();
-        f1(c, "t2-t3").fails().and().stderr().contains("revoked").unwrap();
-        f1(c, "t3-now").unwrap();
+        f1(c, "t0").failure();
+        f1(c, "t1-t2").failure();
+        f1(c, "t2-t3")
+            .failure()
+            .stderr(predicates::str::contains("revoked"));
+        f1(c, "t3-now").success();
 
-        f2(c, "t0").fails().unwrap();
-        f2(c, "t1-t2").fails().unwrap();
-        f2(c, "t2-t3").fails().and().stderr().contains("revoked").unwrap();
-        f2(c, "t3-now").unwrap();
+        f2(c, "t0").failure();
+        f2(c, "t1-t2").failure();
+        f2(c, "t2-t3")
+            .failure()
+            .stderr(predicates::str::contains("revoked"));
+        f2(c, "t3-now").success();
     }
 
     #[test]
     fn revoked_key_retired() {
         let c = "revoked-key_retired";
-        f0(c, "t0").fails().unwrap();
-        f0(c, "t1-t2").unwrap();
-        f0(c, "t2-t3").fails().and().stderr().contains("revoked").unwrap();
-        f0(c, "t3-now").unwrap();
+        f0(c, "t0").failure();
+        f0(c, "t1-t2").success();
+        f0(c, "t2-t3")
+            .failure()
+            .stderr(predicates::str::contains("revoked"));
+        f0(c, "t3-now").success();
 
-        f1(c, "t0").fails().unwrap();
-        f1(c, "t1-t2").fails().unwrap();
-        f1(c, "t2-t3").fails().and().stderr().contains("revoked").unwrap();
-        f1(c, "t3-now").unwrap();
+        f1(c, "t0").failure();
+        f1(c, "t1-t2").failure();
+        f1(c, "t2-t3")
+            .failure()
+            .stderr(predicates::str::contains("revoked"));
+        f1(c, "t3-now").success();
 
-        f2(c, "t0").fails().unwrap();
-        f2(c, "t1-t2").fails().unwrap();
-        f2(c, "t2-t3").fails().and().stderr().contains("revoked").unwrap();
-        f2(c, "t3-now").unwrap();
+        f2(c, "t0").failure();
+        f2(c, "t1-t2").failure();
+        f2(c, "t2-t3")
+            .failure()
+            .stderr(predicates::str::contains("revoked"));
+        f2(c, "t3-now").success();
     }
 
     /// XXX: This is an odd one.
     #[test]
     fn revoked_uid_retired() {
         let c = "revoked-uid_retired";
-        f0(c, "t0").fails().unwrap();
-        f0(c, "t1-t2").unwrap();
-        f0(c, "t2-t3").fails().and().stderr().contains("revoked").unwrap();
-        f0(c, "t3-now").unwrap();
+        f0(c, "t0").failure();
+        f0(c, "t1-t2").success();
+        f0(c, "t2-t3")
+            .failure()
+            .stderr(predicates::str::contains("revoked"));
+        f0(c, "t3-now").success();
 
-        f1(c, "t0").fails().unwrap();
-        f1(c, "t1-t2").fails().unwrap();
-        f1(c, "t2-t3").fails().and().stderr().contains("revoked").unwrap();
-        f1(c, "t3-now").unwrap();
+        f1(c, "t0").failure();
+        f1(c, "t1-t2").failure();
+        f1(c, "t2-t3")
+            .failure()
+            .stderr(predicates::str::contains("revoked"));
+        f1(c, "t3-now").success();
 
-        f2(c, "t0").fails().unwrap();
-        f2(c, "t1-t2").fails().unwrap();
-        f2(c, "t2-t3").fails().and().stderr().contains("revoked").unwrap();
-        f2(c, "t3-now").unwrap();
+        f2(c, "t0").failure();
+        f2(c, "t1-t2").failure();
+        f2(c, "t2-t3")
+            .failure()
+            .stderr(predicates::str::contains("revoked"));
+        f2(c, "t3-now").success();
     }
 }
 
