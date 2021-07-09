@@ -1,19 +1,21 @@
 #[cfg(test)]
 mod integration {
-    use assert_cli::Assert;
+    use assert_cmd::Command;
     use std::path;
 
     #[test]
     fn not_for_signing_subkey() {
-        Assert::cargo_binary("sqv")
+        Command::cargo_bin("sqv")
+            .unwrap()
             .current_dir(path::Path::new("tests").join("data"))
-            .with_args(
-                &["--keyring",
-                  &"no-signing-caps.key",
-                  &"no-signing-caps.sig",
-                  &"msg.txt"])
-            .fails()
-            .unwrap();
+            .args(&[
+                "--keyring",
+                &"no-signing-caps.key",
+                &"no-signing-caps.sig",
+                &"msg.txt",
+            ])
+            .assert()
+            .failure();
     }
 }
 
