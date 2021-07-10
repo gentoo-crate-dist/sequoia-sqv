@@ -21,7 +21,7 @@ gitlab = { repository = "sequoia-pgp/sequoia" }
 maintenance = { status = "actively-developed" }
 
 [dependencies]
-sequoia-openpgp = { version = "1", default-features = false }
+sequoia-openpgp = { git = "https://gitlab.com/sequoia-pgp/sequoia", default-features = false }
 anyhow = "1.0.18"
 chrono = "0.4.10"
 clap = { version = "2.33", features = ["wrap_help"] }
