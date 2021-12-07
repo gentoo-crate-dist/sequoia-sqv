@@ -1,15 +1,15 @@
 [package]
 name = "sequoia-sqv"
 description = "A simple OpenPGP signature verification program"
-version = "1.0.0"
+version = "1.1.0"
 authors = [
     "Justus Winter <justus@sequoia-pgp.org>",
     "Kai Michaelis <kai@sequoia-pgp.org>",
     "Neal H. Walfield <neal@sequoia-pgp.org>",
 ]
-documentation = "https://docs.sequoia-pgp.org/0.21.0/sqv"
+documentation = "https://docs.sequoia-pgp.org/sqv"
 homepage = "https://sequoia-pgp.org/"
-repository = "https://gitlab.com/sequoia-pgp/sequoia"
+repository = "https://gitlab.com/sequoia-pgp/sequoia-sqv"
 readme = "README.md"
 keywords = ["cryptography", "openpgp", "pgp", "signature", "verification"]
 categories = ["cryptography", "command-line-utilities"]

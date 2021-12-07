@@ -2,6 +2,11 @@
 #+TITLE: sequoia-sqv NEWS – history of user-visible changes
 #+STARTUP: content hidestars
 
+* Changes in 1.1.0
+
+  This is the first release since sqv was moved to its own repository.
+  All dependencies have been upgraded.  No code was changed.
+
 * Changes in 1.0.0
 
 This is the initial stable release.
