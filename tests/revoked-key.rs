@@ -276,10 +276,10 @@ fn create_key() {
     use chrono::offset::TimeZone;
 
     let msg = b"Hello, World";
-    let t0 = chrono::offset::Utc.timestamp(1483228800, 0); // 2017-01-01
-    let t1 = chrono::offset::Utc.timestamp(1514764800, 0); // 2018-01-01
-    let t2 = chrono::offset::Utc.timestamp(1546300800, 0); // 2019-01-01
-    let t3 = chrono::offset::Utc.timestamp(1577836800, 0); // 2020-01-01
+    let t0 = chrono::offset::Utc.timestamp_opt(1483228800, 0).unwrap(); // 2017-01-01
+    let t1 = chrono::offset::Utc.timestamp_opt(1514764800, 0).unwrap(); // 2018-01-01
+    let t2 = chrono::offset::Utc.timestamp_opt(1546300800, 0).unwrap(); // 2019-01-01
+    let t3 = chrono::offset::Utc.timestamp_opt(1577836800, 0).unwrap(); // 2020-01-01
     let f1: f32 = 0.4; // Chosen by fair dice roll.
     let f2: f32 = 0.7; // Likewise.
     let t12 = t1 + chrono::Duration::days((300.0 * f1) as i64);

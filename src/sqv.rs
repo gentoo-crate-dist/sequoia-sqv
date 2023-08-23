@@ -260,7 +260,7 @@ fn main() -> Result<()> {
 
     let not_before: Option<std::time::SystemTime> =
         if let Some(t) = matches.value_of("not-before") {
-            Some(parse_iso8601(t, chrono::NaiveTime::from_hms(0, 0, 0))
+            Some(parse_iso8601(t, chrono::NaiveTime::from_hms_opt(0, 0, 0).unwrap())
                  .context(format!("Bad value passed to --not-before: {:?}", t))?
                  .into())
         } else {
@@ -268,7 +268,7 @@ fn main() -> Result<()> {
         };
     let not_after: std::time::SystemTime =
         if let Some(t) = matches.value_of("not-after") {
-            Some(parse_iso8601(t, chrono::NaiveTime::from_hms(23, 59, 59))
+            Some(parse_iso8601(t, chrono::NaiveTime::from_hms_opt(23, 59, 59).unwrap())
                  .context(format!("Bad value passed to --not-after: {:?}", t))?
                  .into())
         } else {
@@ -342,7 +342,7 @@ fn parse_iso8601(s: &str, pad_date_with: chrono::NaiveTime)
 
 #[test]
 fn test_parse_iso8601() {
-    let z = chrono::NaiveTime::from_hms(0, 0, 0);
+    let z = chrono::NaiveTime::from_hms_opt(0, 0, 0).unwrap();
     parse_iso8601("2017-03-04T13:25:35Z", z).unwrap();
     parse_iso8601("2017-03-04T13:25:35+08:30", z).unwrap();
     parse_iso8601("2017-03-04T13:25:35", z).unwrap();
