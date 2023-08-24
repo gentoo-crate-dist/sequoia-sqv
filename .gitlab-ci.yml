@@ -23,7 +23,7 @@ bookworm:
   dependencies:
     - codespell
   script:
-    - make test
+    - cargo test
     - if ! git diff --quiet Cargo.lock ; then echo "Cargo.lock changed.  Please add the change to the corresponding commit." ; false ; fi
     - if ! git diff --quiet ; then echo "The build changed the source.  Please investigate." ; git diff ; fi
   variables:
@@ -45,7 +45,7 @@ bookworm:arm64:
   dependencies:
     - codespell
   script:
-    - make test
+    - cargo test
   variables:
     CARGO_TARGET_DIR: /target
     CARGO_HOME: /cargo
@@ -118,7 +118,7 @@ rust-stable:
     - cargo --version
     - clang --version
   script:
-    - make test
+    - cargo test
   variables:
     CARGO_TARGET_DIR: /target
     CARGO_HOME: /cargo
@@ -142,7 +142,7 @@ rust-stable:arm64:
     - cargo --version
     - clang --version
   script:
-    - make test
+    - cargo test
   variables:
     CARGO_TARGET_DIR: /target
     CARGO_HOME: /cargo
