@@ -51,4 +51,4 @@ install: build-release
 codespell:
 	$(CODESPELL) $(CODESPELL_FLAGS) \
 	  -L "crate,ede,iff,mut,nd,te,uint,KeyServer,keyserver,Keyserver,keyservers,Keyservers,keypair,keypairs,KeyPair,fpr,dedup" \
-	  -S "*.bin,*.gpg,*.pgp,./.git,data,highlight.js,*/target,Makefile"
+	  -S "*.bin,*.gpg,*.pgp,./.git,data,highlight.js,*/target,Makefile,Cargo.lock"
