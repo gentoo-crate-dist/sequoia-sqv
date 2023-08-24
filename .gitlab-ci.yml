@@ -15,11 +15,11 @@ after_script:
   - if [ -d $CARGO_TARGET_DIR ]; then du -sh $CARGO_TARGET_DIR; fi
   - if [ -d $CARGO_HOME ]; then du -sh $CARGO_HOME; fi
 
-bookworm:
+trixie:
   tags:
     - linux
   stage: build
-  image: 192.168.122.1:5000/sequoia-pgp/build-docker-image/bookworm-prebuild:latest
+  image: 192.168.122.1:5000/sequoia-pgp/build-docker-image/trixie-prebuild:latest
   dependencies:
     - codespell
   script:
@@ -32,7 +32,7 @@ bookworm:
     RUSTFLAGS: -D warnings -A unused-parens
   after_script: []
 
-bookworm:arm64:
+trixie:arm64:
   tags:
     - docker-arm64
   only:
@@ -41,7 +41,7 @@ bookworm:arm64:
       - $CI_PROJECT_NAMESPACE == "sequoia-pgp"
   when: manual
   stage: build
-  image: 192.168.122.1:5000/sequoia-pgp/build-docker-image/bookworm-prebuild-arm64:latest
+  image: 192.168.122.1:5000/sequoia-pgp/build-docker-image/trixie-prebuild-arm64:latest
   dependencies:
     - codespell
   script:
@@ -97,7 +97,7 @@ codespell:
   tags:
     - linux
   stage: pre-check
-  image: 192.168.122.1:5000/sequoia-pgp/build-docker-image/bookworm:latest
+  image: 192.168.122.1:5000/sequoia-pgp/build-docker-image/trixie:latest
 
   before_script:
     - codespell --version
