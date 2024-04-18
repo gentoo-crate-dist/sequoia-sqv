@@ -28,7 +28,6 @@ use crate::openpgp::parse::stream::{
     VerificationError,
 };
 use crate::openpgp::cert::prelude::*;
-use crate::openpgp::policy::StandardPolicy as P;
 
 mod sqv_cli;
 
@@ -231,7 +230,9 @@ fn print_error_chain(err: &anyhow::Error) {
 
 
 fn main() -> Result<()> {
-    let p = &P::new();
+    let mut p = sequoia_policy_config::ConfiguredStandardPolicy::new();
+    p.parse_default_config()?;
+    let p = p.build();
 
     let matches = sqv_cli::build().get_matches();
     let cli = sqv_cli::SqvCommand::from_arg_matches(&matches)?;
@@ -265,7 +266,7 @@ fn main() -> Result<()> {
     let h = VHelper::new(good_threshold, not_before, not_after, cli.keyring);
 
     let mut v =
-        DetachedVerifierBuilder::from_file(cli.sig_file)?.with_policy(p, None, h)?;
+        DetachedVerifierBuilder::from_file(cli.sig_file)?.with_policy(&p, None, h)?;
     v.verify_file(cli.file)?;
 
     let h = v.into_helper();

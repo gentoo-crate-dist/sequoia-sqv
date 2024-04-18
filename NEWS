@@ -8,6 +8,8 @@
 - shell completions are now written to
   `$ASSET_OUT_DIR/out/shell-completions`.
 - Generate a man page.  It is written to `$ASSET_OUT_DIR/out/man-pages`.
+- Use the system's crypto policy by default.  Allow the user to
+  override it by setting `SEQUOIA_CRYPTO_POLICY`.
 
 * Changes in 1.1.0
 

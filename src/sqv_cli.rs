@@ -4,6 +4,8 @@ use std::path::PathBuf;
 
 use clap::{Command, CommandFactory, Parser};
 
+use sequoia_policy_config::ConfiguredStandardPolicy;
+
 // The argument parser.
 pub fn build() -> Command {
     let sqv_version = Box::leak(
@@ -23,11 +25,18 @@ pub fn build() -> Command {
 #[command(
     name="sqv",
     about = "sqv is a command-line OpenPGP signature verification tool",
-    after_help = "\
+    after_help = format!("\
 TIMESTAMPs must be given in ISO 8601 format \
 (e.g. '2017-03-04T13:25:35Z', '2017-03-04T13:25', \
 '20170304T1325+0830', '2017-03-04', '2017031', ...).  \
-If no timezone is specified, UTC is assumed.",
+If no timezone is specified, UTC is assumed.
+
+By default, sqv configures the cryptographic policy using {}.  That can \
+be overwritten by setting the {} environment variable to an alternate \
+file.  The path must be absolute.  The file's format is described \
+here: <https://docs.rs/sequoia-policy-config/>.",
+                         ConfiguredStandardPolicy::CONFIG_FILE,
+                         ConfiguredStandardPolicy::ENV_VAR),
     arg_required_else_help = true,
     disable_colored_help = true,
 )]
