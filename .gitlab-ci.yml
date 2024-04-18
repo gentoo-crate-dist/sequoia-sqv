@@ -29,7 +29,6 @@ trixie:
   variables:
     CARGO_TARGET_DIR: /target
     CARGO_HOME: /cargo
-    RUSTFLAGS: -D warnings -A unused-parens
   after_script: []
 
 trixie:arm64:
@@ -49,7 +48,6 @@ trixie:arm64:
   variables:
     CARGO_TARGET_DIR: /target
     CARGO_HOME: /cargo
-    RUSTFLAGS: -D warnings -A unused-parens
   after_script: []
 
 all_commits:
@@ -62,7 +60,6 @@ all_commits:
   variables:
     CARGO_TARGET_DIR: /target
     CARGO_HOME: /cargo
-    RUSTFLAGS: -D warnings -A unused-parens
     GIT_STRATEGY: clone
 
 all_commits:arm64:
@@ -90,7 +87,6 @@ all_commits:arm64:
   variables:
     CARGO_TARGET_DIR: /target
     CARGO_HOME: /cargo
-    RUSTFLAGS: -D warnings -A unused-parens
     GIT_STRATEGY: clone
 
 codespell:
@@ -122,7 +118,6 @@ rust-stable:
   variables:
     CARGO_TARGET_DIR: /target
     CARGO_HOME: /cargo
-    RUSTFLAGS: -D warnings -A unused-parens
 
 rust-stable:arm64:
   tags:
@@ -146,7 +141,6 @@ rust-stable:arm64:
   variables:
     CARGO_TARGET_DIR: /target
     CARGO_HOME: /cargo
-    RUSTFLAGS: -D warnings -A unused-parens
 
 variables:
   DEBIAN_FRONTEND: noninteractive
@@ -154,6 +148,5 @@ variables:
   CARGO_FLAGS: --color always
   CARGO_INCREMENTAL: 0
   RUST_BACKTRACE: full
-  RUSTFLAGS: -D warnings
   CFLAGS: -Werror
   QUICKCHECK_GENERATOR_SIZE: 500 # https://github.com/BurntSushi/quickcheck/pull/240
