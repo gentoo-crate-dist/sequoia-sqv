@@ -14,7 +14,7 @@ readme = "README.md"
 keywords = ["cryptography", "openpgp", "pgp", "signature", "verification"]
 categories = ["cryptography", "command-line-utilities"]
 license = "GPL-2.0-or-later"
-edition = "2018"
+edition = "2021"
 exclude = [".ci", ".gitlab-ci.yml"]
 
 [badges]

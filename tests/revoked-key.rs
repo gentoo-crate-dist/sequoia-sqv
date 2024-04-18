@@ -248,7 +248,6 @@ mod integration {
 #[allow(dead_code)]
 fn create_key() {
     use std::fs::File;
-    use std::convert::TryFrom;
     use sequoia_openpgp::{
         Cert,
         Packet,
