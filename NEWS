@@ -7,6 +7,7 @@
 - Upgrade to clap 4.
 - shell completions are now written to
   `$ASSET_OUT_DIR/out/shell-completions`.
+- Generate a man page.  It is written to `$ASSET_OUT_DIR/out/man-pages`.
 
 * Changes in 1.1.0
 

@@ -17,6 +17,7 @@ fn main() {
 
     let mut sqv = sqv_cli::build();
     generate_shell_completions(&mut sqv).unwrap();
+    generate_man_pages(&mut sqv).unwrap();
 }
 
 /// Variable name to control the asset out directory with.
@@ -48,5 +49,19 @@ fn generate_shell_completions(sq: &mut clap::Command) -> Result<()> {
     };
 
     println!("cargo:warning=shell completions written to {}", path.display());
+    Ok(())
+}
+
+/// Generates man pages.
+fn generate_man_pages(sqv: &clap::Command) -> Result<()> {
+    let path = asset_out_dir("man-pages")?.join("sqv.1");
+
+    let man = clap_mangen::Man::new(sqv.clone());
+    let mut buffer: Vec<u8> = Default::default();
+    man.render(&mut buffer)?;
+
+    std::fs::write(&path, &buffer)?;
+
+    println!("cargo:warning=man page written to {}", path.display());
     Ok(())
 }
