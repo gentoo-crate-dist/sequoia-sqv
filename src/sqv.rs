@@ -4,9 +4,12 @@
 /// the motivation.
 
 use std::process::exit;
+use std::path::PathBuf;
 
 use chrono::{DateTime, offset::Utc};
 use anyhow::Context;
+
+use clap::FromArgMatches;
 
 use sequoia_openpgp as openpgp;
 
@@ -29,7 +32,7 @@ use crate::openpgp::policy::StandardPolicy as P;
 
 mod sqv_cli;
 
-struct VHelper<'a> {
+struct VHelper {
     not_before: Option<std::time::SystemTime>,
     not_after: std::time::SystemTime,
 
@@ -37,10 +40,10 @@ struct VHelper<'a> {
     total: usize,
     threshold: usize,
 
-    keyrings: clap::OsValues<'a>,
+    keyrings: Vec<PathBuf>,
 }
 
-impl<'a> std::fmt::Debug for VHelper<'a> {
+impl std::fmt::Debug for VHelper {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         f.debug_struct("VHelper")
             .field("not_before", &self.not_before)
@@ -53,11 +56,11 @@ impl<'a> std::fmt::Debug for VHelper<'a> {
     }
 }
 
-impl<'a> VHelper<'a> {
+impl VHelper {
     fn new(threshold: usize,
            not_before: Option<std::time::SystemTime>,
            not_after: std::time::SystemTime,
-           keyrings: clap::OsValues<'a>) -> Self {
+           keyrings: Vec<PathBuf>) -> Self {
         VHelper {
             not_before: not_before,
             not_after: not_after,
@@ -69,12 +72,12 @@ impl<'a> VHelper<'a> {
     }
 }
 
-impl<'a> VerificationHelper for VHelper<'a> {
+impl VerificationHelper for VHelper {
     fn get_certs(&mut self, ids: &[crate::KeyHandle]) -> Result<Vec<Cert>> {
         let mut certs = Vec::with_capacity(ids.len());
 
         // Load relevant keys from the keyring.
-        for filename in self.keyrings.clone() {
+        for filename in self.keyrings.iter() {
             for cert in CertParser::from_file(filename)
                 .with_context(|| format!("Failed to parse keyring {:?}",
                                          filename))?
@@ -231,58 +234,39 @@ fn main() -> Result<()> {
     let p = &P::new();
 
     let matches = sqv_cli::build().get_matches();
+    let cli = sqv_cli::SqvCommand::from_arg_matches(&matches)?;
 
-    let verbose = matches.is_present("verbose");
+    let verbose = cli.verbose;
 
-    let good_threshold
-        = if let Some(good_threshold) = matches.value_of("signatures") {
-            match good_threshold.parse::<usize>() {
-                Ok(good_threshold) => good_threshold,
-                Err(err) => {
-                    eprintln!("Value passed to --signatures must be numeric: \
-                               {} (got: {:?}).",
-                              err, good_threshold);
-                    exit(2);
-                },
-            }
-        } else {
-            1
-        };
+    let good_threshold = cli.signatures;
     if good_threshold < 1 {
         eprintln!("Value passed to --signatures must be >= 1 (got: {:?}).",
                   good_threshold);
         exit(2);
     }
 
-    let file = matches.value_of_os("file").expect("'file' is required");
-    let sig_file = matches.value_of_os("sig-file")
-        .expect("'sig-file' is required");
-
     let not_before: Option<std::time::SystemTime> =
-        if let Some(t) = matches.value_of("not-before") {
-            Some(parse_iso8601(t, chrono::NaiveTime::from_hms_opt(0, 0, 0).unwrap())
+        if let Some(t) = cli.not_before {
+            Some(parse_iso8601(&t, chrono::NaiveTime::from_hms_opt(0, 0, 0).unwrap())
                  .context(format!("Bad value passed to --not-before: {:?}", t))?
                  .into())
         } else {
             None
         };
     let not_after: std::time::SystemTime =
-        if let Some(t) = matches.value_of("not-after") {
-            Some(parse_iso8601(t, chrono::NaiveTime::from_hms_opt(23, 59, 59).unwrap())
+        if let Some(t) = cli.not_after {
+            Some(parse_iso8601(&t, chrono::NaiveTime::from_hms_opt(23, 59, 59).unwrap())
                  .context(format!("Bad value passed to --not-after: {:?}", t))?
                  .into())
         } else {
             None
         }.unwrap_or_else(std::time::SystemTime::now);
 
-    let keyrings = matches.values_of_os("keyring")
-        .expect("No keyring specified.");
-
-    let h = VHelper::new(good_threshold, not_before, not_after, keyrings);
+    let h = VHelper::new(good_threshold, not_before, not_after, cli.keyring);
 
     let mut v =
-        DetachedVerifierBuilder::from_file(sig_file)?.with_policy(p, None, h)?;
-    v.verify_file(file)?;
+        DetachedVerifierBuilder::from_file(cli.sig_file)?.with_policy(p, None, h)?;
+    v.verify_file(cli.file)?;
 
     let h = v.into_helper();
 

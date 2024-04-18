@@ -2,6 +2,12 @@
 #+TITLE: sequoia-sqv NEWS – history of user-visible changes
 #+STARTUP: content hidestars
 
+* Changes in 1.2.0
+
+- Upgrade to clap 4.
+- shell completions are now written to
+  `$ASSET_OUT_DIR/out/shell-completions`.
+
 * Changes in 1.1.0
 
   This is the first release since sqv was moved to its own repository.

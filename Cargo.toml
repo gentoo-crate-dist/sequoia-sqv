@@ -25,10 +25,13 @@ maintenance = { status = "actively-developed" }
 sequoia-openpgp = { version = "1", default-features = false }
 anyhow = "1.0.18"
 chrono = "0.4.10"
-clap = { version = "2.33", features = ["wrap_help"] }
+clap = { version = "4", features = ["derive", "string", "wrap_help"] }
 
 [build-dependencies]
-clap = "2.33"
+anyhow = "1.0.18"
+clap = { version = "4", features = ["derive", "string", "wrap_help"] }
+clap_complete = { version = "4"}
+sequoia-openpgp = { version = "1", default-features = false }
 
 [dev-dependencies]
 assert_cli = "0.6"

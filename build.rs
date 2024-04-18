@@ -1,6 +1,12 @@
 use std::env;
 use std::fs;
-use clap::Shell;
+use std::path::PathBuf;
+
+use anyhow::Result;
+
+use clap::ValueEnum;
+
+use clap_complete::Shell;
 
 mod sqv_cli {
     include!("src/sqv_cli.rs");
@@ -9,14 +15,38 @@ mod sqv_cli {
 fn main() {
     println!("cargo:rerun-if-changed=build.rs");
 
-    let outdir = match env::var_os("CARGO_TARGET_DIR") {
-        None => return,
-        Some(outdir) => outdir,
-    };
-    fs::create_dir_all(&outdir).unwrap();
     let mut sqv = sqv_cli::build();
-    for shell in &[Shell::Bash, Shell::Fish, Shell::Zsh, Shell::PowerShell,
-                   Shell::Elvish] {
-        sqv.gen_completions("sqv", *shell, &outdir);
+    generate_shell_completions(&mut sqv).unwrap();
+}
+
+/// Variable name to control the asset out directory with.
+const ASSET_OUT_DIR: &str = "ASSET_OUT_DIR";
+
+/// Returns the directory to write the given assets to.
+fn asset_out_dir(asset: &str) -> Result<PathBuf> {
+    println!("cargo:rerun-if-env-changed={}", ASSET_OUT_DIR);
+    let outdir: PathBuf =
+        env::var_os(ASSET_OUT_DIR).unwrap_or_else(
+            || env::var_os("OUT_DIR").expect("OUT_DIR not set")).into();
+    if outdir.exists() && ! outdir.is_dir() {
+        return Err(
+            anyhow::anyhow!("{}={:?} is not a directory",
+                            ASSET_OUT_DIR, outdir));
     }
+
+    let path = outdir.join(asset);
+    fs::create_dir_all(&path)?;
+    Ok(path)
+}
+
+/// Generates shell completions.
+fn generate_shell_completions(sq: &mut clap::Command) -> Result<()> {
+    let path = asset_out_dir("shell-completions")?;
+
+    for shell in Shell::value_variants() {
+        clap_complete::generate_to(*shell, sq, "sq", &path)?;
+    };
+
+    println!("cargo:warning=shell completions written to {}", path.display());
+    Ok(())
 }
