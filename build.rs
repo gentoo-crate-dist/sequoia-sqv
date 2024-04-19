@@ -41,11 +41,11 @@ fn asset_out_dir(asset: &str) -> Result<PathBuf> {
 }
 
 /// Generates shell completions.
-fn generate_shell_completions(sq: &mut clap::Command) -> Result<()> {
+fn generate_shell_completions(sqv: &mut clap::Command) -> Result<()> {
     let path = asset_out_dir("shell-completions")?;
 
     for shell in Shell::value_variants() {
-        clap_complete::generate_to(*shell, sq, "sq", &path)?;
+        clap_complete::generate_to(*shell, sqv, "sqv", &path)?;
     };
 
     println!("cargo:warning=shell completions written to {}", path.display());
