@@ -19,7 +19,7 @@ trixie:
   tags:
     - linux
   stage: build
-  image: 192.168.122.1:5000/sequoia-pgp/build-docker-image/trixie-prebuild:latest
+  image: jampot.sequoia-pgp.org/sequoia-pgp/build-docker-image/trixie-prebuild:latest
   dependencies:
     - codespell
   script:
@@ -40,7 +40,7 @@ trixie:arm64:
       - $CI_PROJECT_NAMESPACE == "sequoia-pgp"
   when: manual
   stage: build
-  image: 192.168.122.1:5000/sequoia-pgp/build-docker-image/trixie-prebuild-arm64:latest
+  image: jampot.sequoia-pgp.org/sequoia-pgp/build-docker-image/trixie-prebuild-arm64:latest
   dependencies:
     - codespell
   script:
@@ -53,7 +53,7 @@ trixie:arm64:
 all_commits:
   # Test each commit up to main, to facilitate bisecting.
   stage: test
-  image: 192.168.122.1:5000/sequoia-pgp/build-docker-image/rust-stable-prebuild:latest
+  image: jampot.sequoia-pgp.org/sequoia-pgp/build-docker-image/rust-stable-prebuild:latest
   needs: ["rust-stable"]
   script:
     - .ci/all_commits.sh
@@ -67,7 +67,7 @@ all_commits:arm64:
   tags:
     - docker-arm64
   stage: test
-  image: 192.168.122.1:5000/sequoia-pgp/build-docker-image/rust-stable-prebuild-arm64:latest
+  image: jampot.sequoia-pgp.org/sequoia-pgp/build-docker-image/rust-stable-prebuild-arm64:latest
   needs: ["rust-stable:arm64"]
   only:
     refs:
@@ -93,7 +93,7 @@ codespell:
   tags:
     - linux
   stage: pre-check
-  image: 192.168.122.1:5000/sequoia-pgp/build-docker-image/trixie:latest
+  image: jampot.sequoia-pgp.org/sequoia-pgp/build-docker-image/trixie:latest
 
   before_script:
     - codespell --version
@@ -105,7 +105,7 @@ rust-stable:
   tags:
     - linux
   stage: build
-  image: 192.168.122.1:5000/sequoia-pgp/build-docker-image/rust-stable-prebuild:latest
+  image: jampot.sequoia-pgp.org/sequoia-pgp/build-docker-image/rust-stable-prebuild:latest
   before_script:
     - if [ -d $CARGO_TARGET_DIR ]; then find $CARGO_TARGET_DIR | wc --lines; du -sh $CARGO_TARGET_DIR; fi
     - if [ -d $CARGO_HOME ]; then find $CARGO_HOME | wc --lines; du -sh $CARGO_HOME; fi
@@ -123,7 +123,7 @@ rust-stable:arm64:
   tags:
     - docker-arm64
   stage: build
-  image: 192.168.122.1:5000/sequoia-pgp/build-docker-image/rust-stable-prebuild-arm64:latest
+  image: jampot.sequoia-pgp.org/sequoia-pgp/build-docker-image/rust-stable-prebuild-arm64:latest
   only:
     variables:
       # Forks of this project most likely do not have an arm64 runner
