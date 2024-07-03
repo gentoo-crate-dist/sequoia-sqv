@@ -305,7 +305,11 @@ fn create_key() {
     let uid: UserID = "juliet@example.org".into();
     let uid_binding =
         signature::SignatureBuilder::new(SignatureType::PositiveCertification)
+        .set_features(Features::sequoia()).unwrap()
+        .set_key_flags(KeyFlags::empty()
+                       .set_signing().set_certification()).unwrap()
         .set_signature_creation_time(t1).unwrap()
+        .set_preferred_hash_algorithms(vec![HashAlgorithm::SHA512]).unwrap()
         .sign_userid_binding(&mut signer, None, &uid).unwrap();
 
     // Create subkey.
