@@ -15,7 +15,7 @@ keywords = ["cryptography", "openpgp", "pgp", "signature", "verification"]
 categories = ["cryptography", "command-line-utilities"]
 license = "GPL-2.0-or-later"
 edition = "2021"
-rust-version = "1.70"
+rust-version = "1.79"
 exclude = [".ci", ".gitlab-ci.yml"]
 
 [badges]
