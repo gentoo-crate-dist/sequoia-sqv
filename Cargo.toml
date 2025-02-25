@@ -33,7 +33,7 @@ sequoia-policy-config = "0.6"
 anyhow = "1.0.18"
 clap = { version = "4", features = ["derive", "string", "wrap_help"] }
 clap_complete = { version = "4"}
-clap_mangen = "0.2"
+sequoia-man = "0.2"
 sequoia-openpgp = { version = "1", default-features = false }
 sequoia-policy-config = "0.6"
 

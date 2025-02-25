@@ -421,16 +421,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f46ad14479a25103f283c0f10005961cf086d8dc42205bb44c46ac563475dca6"
 
 [[package]]
-name = "clap_mangen"
-version = "0.2.26"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "724842fa9b144f9b89b3f3d371a89f3455eea660361d13a554f68f8ae5d6c13a"
-dependencies = [
- "clap",
- "roff",
-]
-
-[[package]]
 name = "cmac"
 version = "0.7.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1789,6 +1779,17 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f79dfe2d285b0488816f30e700a7438c5a73d816b5b7d3ac72fbc48b0d185e03"
 
 [[package]]
+name = "sequoia-man"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8a39c88c36c3cbdc22c4cc158f0c9246292ccf526ab8b0445ab87330132cf6d7"
+dependencies = [
+ "anyhow",
+ "clap",
+ "roff",
+]
+
+[[package]]
 name = "sequoia-openpgp"
 version = "1.22.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1873,8 +1874,8 @@ dependencies = [
  "chrono",
  "clap",
  "clap_complete",
- "clap_mangen",
  "predicates",
+ "sequoia-man",
  "sequoia-openpgp",
  "sequoia-policy-config",
 ]

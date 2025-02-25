@@ -8,3 +8,20 @@ variables:
 
 include:
   - component: "gitlab.com/sequoia-pgp/common-ci/sequoia-pipeline@main"
+
+pages:
+  stage: build
+  image: jampot.sequoia-pgp.org/sequoia-pgp/build-docker-image/trixie-pandoc:latest
+  script:
+    - ASSET_OUT_DIR=/tmp/assets cargo doc --no-deps
+    - mkdir public
+    - mv -v target/doc public/impl
+
+    # Man pages.
+    - bash /tmp/assets/man-pages/man2html.sh
+    - mkdir public/man
+    - mv -v /tmp/assets/man-pages/*.html public/man
+    - echo "/sequoia-sqv/man /sequoia-sqv/man/sqv.1.html 302" >> public/_redirects
+  artifacts:
+    paths:
+      - public
