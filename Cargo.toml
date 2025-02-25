@@ -43,7 +43,7 @@ predicates = "3"
 
 [[bin]]
 name = "sqv"
-path = "src/sqv-usage.rs"
+path = "src/sqv.rs"
 bench = false
 
 [features]
