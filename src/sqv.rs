@@ -29,7 +29,7 @@ use crate::openpgp::parse::stream::{
 };
 use crate::openpgp::cert::prelude::*;
 
-mod sqv_cli;
+mod cli;
 
 struct VHelper {
     not_before: Option<std::time::SystemTime>,
@@ -234,8 +234,8 @@ fn main() -> Result<()> {
     p.parse_default_config()?;
     let p = p.build();
 
-    let matches = sqv_cli::build().get_matches();
-    let cli = sqv_cli::SqvCommand::from_arg_matches(&matches)?;
+    let matches = cli::build().get_matches();
+    let cli = cli::SqvCommand::from_arg_matches(&matches)?;
 
     let verbose = cli.verbose;
 

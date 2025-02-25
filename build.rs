@@ -8,14 +8,14 @@ use clap::ValueEnum;
 
 use clap_complete::Shell;
 
-mod sqv_cli {
-    include!("src/sqv_cli.rs");
+mod cli {
+    include!("src/cli/mod.rs");
 }
 
 fn main() {
     println!("cargo:rerun-if-changed=build.rs");
 
-    let mut sqv = sqv_cli::build();
+    let mut sqv = cli::build();
     generate_shell_completions(&mut sqv).unwrap();
     generate_man_pages(&mut sqv).unwrap();
 }
