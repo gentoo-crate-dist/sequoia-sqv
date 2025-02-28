@@ -53,8 +53,8 @@ described here: <https://docs.rs/sequoia-policy-config/>.
 In some cases, the user expects signatures to be made within a certain \
 temporal window.  This can be enforced using the `--not-before` and \
 `--not-after` arguments.  The TIMESTAMPs must be given in ISO 8601 \
-format (e.g. '2017-03-04T13:25:35Z', '2017-03-04T13:25', \
-'20170304T1325+0830', '2017-03-04', '2017031', ...).  If no timezone \
+format (e.g. `2017-03-04T13:25:35Z`, `2017-03-04T13:25`, \
+`20170304T1325+0830`, `2017-03-04`, `2017031`, etc.).  If no timezone \
 is specified, UTC is assumed.
 
 Exits with a non-zero status if the specified number of signatures \
