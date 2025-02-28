@@ -18,10 +18,10 @@ pages:
     - mv -v target/doc public/impl
 
     # Man pages.
-    - bash /tmp/assets/man-pages/man2html.sh
+    - /tmp/assets/man-pages/man2html.sh --generate
     - mkdir public/man
-    - mv -v /tmp/assets/man-pages/*.html public/man
-    - echo "/sequoia-sqv/man /sequoia-sqv/man/sqv.1.html 302" >> public/_redirects
+    - mv -v $(for f in $(/tmp/assets/man-pages/man2html.sh --html-files); do echo /tmp/assets/man-pages/$f; done) public/man
+    - echo "/sequoia-sqv/man /sequoia-sqv/man/$(/tmp/assets/man-pages/man2html.sh --html-root) 302" >> public/_redirects
   artifacts:
     paths:
       - public
