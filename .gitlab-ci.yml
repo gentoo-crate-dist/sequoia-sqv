@@ -2,6 +2,7 @@ stages:
   - pre-check
   - build
   - test
+  - deploy
 
 variables:
   RUN_WINDOWS: false
@@ -25,3 +26,15 @@ pages:
   artifacts:
     paths:
       - public
+  pages: false
+
+pages-deploy:
+  stage: deploy
+  image: jampot.sequoia-pgp.org/sequoia-pgp/build-docker-image/trixie-pandoc:latest
+  script: echo "publishing"
+  artifacts:
+    paths:
+      - public
+  pages: true
+  rules:
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
