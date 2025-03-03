@@ -201,6 +201,23 @@ impl VerificationHelper for VHelper {
                                     verification_err = Some(error)
                                 }
                             }
+
+                            Err(UnknownSignature { sig, .. }) => {
+                                eprintln!("Verifying signature:");
+                                print_error_chain(sig.error());
+                                if verification_err.is_none() {
+                                    verification_err =
+                                        Some(anyhow::anyhow!("{}", sig.error()));
+                                }
+                            }
+
+                            Err(e) => {
+                                eprintln!("Verifying signature: {}", e);
+                                if verification_err.is_none() {
+                                    verification_err =
+                                        Some(anyhow::anyhow!("{}", e));
+                                }
+                            }
                         }
                     }
                 MessageLayer::Compression { .. } => (),
