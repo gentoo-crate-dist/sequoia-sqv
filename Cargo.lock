@@ -1932,6 +1932,7 @@ dependencies = [
  "sequoia-man",
  "sequoia-openpgp",
  "sequoia-policy-config",
+ "tempfile",
 ]
 
 [[package]]

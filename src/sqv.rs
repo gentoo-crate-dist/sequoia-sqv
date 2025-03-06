@@ -3,6 +3,7 @@
 /// See https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=872271 for
 /// the motivation.
 
+use std::io;
 use std::process::exit;
 use std::path::PathBuf;
 
@@ -26,6 +27,7 @@ use crate::openpgp::parse::stream::{
     VerificationHelper,
     GoodChecksum,
     VerificationError,
+    VerifierBuilder,
 };
 use crate::openpgp::cert::prelude::*;
 
@@ -250,6 +252,14 @@ fn main() -> Result<()> {
     let matches = cli::build().get_matches();
     let cli = cli::SqvCommand::from_arg_matches(&matches)?;
 
+    if cli.data.is_none() && cli.detached.is_none()
+        && ! cli.message && ! cli.cleartext
+    {
+        return Err(anyhow::anyhow!(
+            "Either `--signature-file`, `--message`, or `--cleartext` \
+             must be given."));
+    }
+
     let verbose = cli.verbose;
 
     let good_threshold = cli.signatures;
@@ -289,11 +299,33 @@ fn main() -> Result<()> {
     p.parse_default_config()?;
     let p = p.build();
 
-    let mut v =
-        DetachedVerifierBuilder::from_file(cli.sig_file)?.with_policy(&p, None, h)?;
-    v.verify_file(cli.file)?;
+    // Dispatch.
+    let h = if cli.data.is_some() || cli.detached.is_some() {
+        let sig = cli.detached.as_ref().unwrap_or(&cli.file);
+        let data = cli.data.as_ref().unwrap_or(&cli.file);
 
-    let h = v.into_helper();
+        let mut v =
+            DetachedVerifierBuilder::from_file(sig)?
+            .with_policy(&p, None, h)?;
+        v.verify_file(data)?;
+        v.into_helper()
+    } else {
+        assert!(cli.message || cli.cleartext);
+        let mut sink: Box<dyn io::Write> = if let Some(n) = &cli.output {
+            Box::new(std::fs::File::options()
+                     .write(true)
+                     .create_new(true)
+                     .open(n)?)
+        } else {
+            Box::new(io::stdout())
+        };
+
+        let mut v =
+            VerifierBuilder::from_file(&cli.file)?
+            .with_policy(&p, None, h)?;
+        io::copy(&mut v, &mut sink)?;
+        v.into_helper()
+    };
 
     if verbose {
         eprintln!("{} of {} signatures are valid (threshold is: {}).",

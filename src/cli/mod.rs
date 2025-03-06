@@ -37,6 +37,35 @@ sqv is a simple signature verification tool.  It checks that \
 signatures are valid, and correctly issued by one of the certificates \
 in the specified keyring.
 
+sqv can verify detached signatures, inline-signed messages, and
+messages using the Cleartext Signature Framework.
+
+To verify detached signatures, use the `--signature-file` argument
+followed by the path to the detached signature file, and give the data
+file as first positional argument:
+
+  $ sqv --keyring=... --signature-file=image.iso.sig image.iso
+
+To verify an inline-signed message, use the `--message` argument, and
+give the path to the inline-signed message as first positional
+argument.  When verifying an inline-signed `--output` has to be given:
+
+  $ sqv --keyring=... --output=authenticated.txt \\
+        --message signed.pgp
+
+To verify a message using the Cleartext Signature Framework, use the
+`--cleartext` argument, and give the path to the message as first
+positional argument.  When verifying an inline-signed `--output` has
+to be given:
+
+  $ sqv --keyring=... --output=authenticated.txt \\
+        --cleartext message.txt
+
+Finally, there is a legacy way to verify detached signatures, where
+the path to the signature file and the path to the data file are given
+as positional arguments.  This form is deprecated, prefer the explicit
+`--signature-file` form.
+
 By default, one signature must be valid.  This can be changed using \
 the `--signatures` arguments.
 
@@ -64,10 +93,57 @@ could not be verified.
 ",
                          ConfiguredStandardPolicy::CONFIG_FILE,
                          ConfiguredStandardPolicy::ENV_VAR),
+    after_help = "Examples:
+
+# Verify a detached signature.
+$ sqv --keyring=trusted.certs --signature-file=document.sig \\
+                              document.txt
+
+# Verify a detached signature, legacy interface.
+$ sqv --keyring=trusted.certs document.sig document.txt
+
+# Verify a signed message.
+$ sqv --keyring trusted.certs --message document.pgp
+
+# Verify a message using the Cleartext Signature Framework.
+$ sqv --keyring trusted.certs --clearsign document.pgp
+",
     arg_required_else_help = true,
     disable_colored_help = true,
 )]
+#[clap(group(clap::ArgGroup::new("kind")
+             .args(&["detached", "message", "cleartext"]).required(false)))]
 pub struct SqvCommand {
+    /// Write to FILE or stdout if omitted
+    #[clap(
+        long,
+        value_name = "FILE",
+        conflicts_with_all = ["detached", "data"],
+        required_unless_present_any = ["detached", "data"],
+    )]
+    pub output: Option<PathBuf>,
+
+    #[clap(
+        long = "signature-file",
+        value_name = "SIG",
+        help = "Verify a detached signature file"
+    )]
+    pub detached: Option<PathBuf>,
+
+    #[clap(
+        long = "message",
+        value_name = "SIG",
+        help = "Verify an inline signed message"
+    )]
+    pub message: bool,
+
+    #[clap(
+        long = "cleartext",
+        value_name = "SIG",
+        help = "Verify a cleartext-signed message"
+    )]
+    pub cleartext: bool,
+
     /// A keyring.
     #[clap(
         long,
@@ -106,15 +182,19 @@ pub struct SqvCommand {
         default_value_t = 1)]
     pub signatures: usize,
 
-    /// File containing the detached signature.
-    #[clap(
-        value_name = "SIG-FILE")]
-    pub sig_file: PathBuf,
-
-    /// File to verify.
-    #[clap(
-        value_name = "FILE")]
+    /// The inline-signed message, message using the Cleartext
+    /// Signature Framework, or data file.
+    #[clap(value_name = "FILE")]
     pub file: PathBuf,
+
+    /// In the legacy way of invoking sqv, the signature file is given
+    /// as first positional argument, and the data file as second.
+    #[clap(
+        hide = true,
+        value_name = "DATA-FILE",
+        conflicts_with_all = ["detached", "message", "cleartext"],
+    )]
+    pub data: Option<PathBuf>,
 
     /// Be verbose.
     #[clap(
