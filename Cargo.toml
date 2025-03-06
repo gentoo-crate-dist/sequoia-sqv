@@ -31,6 +31,7 @@ sequoia-policy-config = "0.8"
 
 [build-dependencies]
 anyhow = "1.0.18"
+chrono = "0.4.10"
 clap = { version = "4", features = ["derive", "string", "wrap_help"] }
 clap_complete = { version = "4"}
 sequoia-man = "0.3"

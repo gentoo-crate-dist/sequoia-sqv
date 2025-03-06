@@ -6,6 +6,8 @@ use clap::{Command, CommandFactory, Parser};
 
 use sequoia_policy_config::ConfiguredStandardPolicy;
 
+mod time;
+
 // The argument parser.
 pub fn build() -> Command {
     let sqv_version = Box::leak(
@@ -119,4 +121,33 @@ pub struct SqvCommand {
         long,
         short = 'v')]
     pub verbose: bool,
+
+    #[clap(
+        long = "policy-as-of",
+        allow_hyphen_values = true,
+        value_name = "TIMESTAMP",
+        help = "Select the cryptographic policy as of the specified time",
+        long_help = "\
+Select the cryptographic policy as of the specified time
+
+The time is \
+expressed as an ISO 8601 formatted timestamp.  The policy determines \
+what cryptographic constructs are allowed.
+
+If you are working with a message that sq rejects, because it is \
+protected by cryptographic constructs that are now considered broken, \
+you can use this option to select a different cryptographic policy.  \
+If you are relying on the cryptography, e.g., you are verifying a \
+signature, then you should only do this if you are confident that the \
+message hasn't been tampered with.
+
+TIME is interpreted as an ISO 8601 timestamp.  To set the \
+policy time to January 1, 2007 at midnight UTC, you can do:
+
+$ sqv --policy-as-of 20070101 --message msg.pgp
+
+Defaults to the current time.
+",
+    )]
+    pub policy_as_of: Option<time::Time>,
 }

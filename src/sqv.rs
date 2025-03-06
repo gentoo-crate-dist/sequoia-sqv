@@ -247,10 +247,6 @@ fn print_error_chain(err: &anyhow::Error) {
 
 
 fn main() -> Result<()> {
-    let mut p = sequoia_policy_config::ConfiguredStandardPolicy::new();
-    p.parse_default_config()?;
-    let p = p.build();
-
     let matches = cli::build().get_matches();
     let cli = cli::SqvCommand::from_arg_matches(&matches)?;
 
@@ -281,6 +277,17 @@ fn main() -> Result<()> {
         }.unwrap_or_else(std::time::SystemTime::now);
 
     let h = VHelper::new(good_threshold, not_before, not_after, cli.keyring);
+
+    let t = cli.policy_as_of.as_ref()
+        .map(|at| at.to_system_time(std::time::SystemTime::now()))
+        .transpose()
+        .with_context(|| format!("Error parsing --policy-as-of: {}",
+                                 cli.policy_as_of.unwrap()))?
+        .unwrap_or_else(std::time::SystemTime::now);
+
+    let mut p = sequoia_policy_config::ConfiguredStandardPolicy::at(t);
+    p.parse_default_config()?;
+    let p = p.build();
 
     let mut v =
         DetachedVerifierBuilder::from_file(cli.sig_file)?.with_policy(&p, None, h)?;
