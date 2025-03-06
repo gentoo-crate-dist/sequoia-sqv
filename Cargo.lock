@@ -1832,9 +1832,9 @@ checksum = "f79dfe2d285b0488816f30e700a7438c5a73d816b5b7d3ac72fbc48b0d185e03"
 
 [[package]]
 name = "sequoia-man"
-version = "0.3.1"
+version = "0.3.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e0a9d99c0d8879eb0acc2f21908ea328b3370e429079d21a8a187b42161bc674"
+checksum = "961fa9711d7a1d9ccc13ac55b65482f828399dda12a0be7fa4e059dca410d217"
 dependencies = [
  "anyhow",
  "clap",
