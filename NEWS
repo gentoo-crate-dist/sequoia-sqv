@@ -7,6 +7,13 @@
 - This release adds support for RFC 9580.
 - sqv --policy-as-of can be used to use the policy at a different
   time.
+- sqv now supports verification of detached signatures using the
+  `--signature-file` argument, inline-signed messages using the
+  `--message` argument, and messages using the Cleartext Signature
+  Framework using the `--cleartext` argument.  When verifying
+  inline-signed messages and cleartext messages, `--output` is
+  mandatory.  This closely resembles `sq verify`.  The legacy
+  two-argument form is supported for the duration of the 1.x series.
 
 * Changes in 1.2.1
 
