@@ -104,7 +104,7 @@ $ sqv --keyring=trusted.certs document.sig document.txt
 $ sqv --keyring trusted.certs --message document.pgp
 
 # Verify a message using the Cleartext Signature Framework.
-$ sqv --keyring trusted.certs --clearsign document.pgp
+$ sqv --keyring trusted.certs --cleartext document.pgp
 ",
     arg_required_else_help = true,
     disable_colored_help = true,
