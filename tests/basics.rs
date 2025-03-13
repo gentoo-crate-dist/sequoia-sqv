@@ -127,3 +127,55 @@ fn cleartext_signed_message() {
         .assert()
         .failure();
 }
+
+/// Verifies overwrite switch.
+#[test]
+fn overwrite() {
+    let p = tempfile::tempdir().unwrap();
+    let auth = p.path().join("authenticated.txt").display().to_string();
+
+    // create an output file
+    Command::cargo_bin("sqv").expect("have sqv")
+        .current_dir(path::Path::new("tests").join("data"))
+        .args(&[
+            "--keyring",
+            "emmelie-dorothea-dina-samantha-awina-ed25519.pgp",
+            "--output", &auth,
+            "--cleartext",
+            "a-cypherpunks-manifesto.csf",
+        ])
+        .assert()
+        .success()
+        .stdout(predicate::eq(
+            b"8E8C33FA4626337976D97978069C0C348DD82C19\n" as &[u8]));
+
+    // repeat procedure - this has to fail
+    Command::cargo_bin("sqv").expect("have sqv")
+        .current_dir(path::Path::new("tests").join("data"))
+        .args(&[
+            "--keyring",
+            "emmelie-dorothea-dina-samantha-awina-ed25519.pgp",
+            "--output", &auth,
+            "--cleartext",
+            "a-cypherpunks-manifesto.csf",
+        ])
+        .assert()
+        .failure();
+
+    // repeat again - this time with '--overwrite', this should succeed
+    // like the first incarnation (eg: same output)
+    Command::cargo_bin("sqv").expect("have sqv")
+        .current_dir(path::Path::new("tests").join("data"))
+        .args(&[
+            "--keyring",
+            "emmelie-dorothea-dina-samantha-awina-ed25519.pgp",
+            "--output", &auth,
+            "--overwrite",
+            "--cleartext",
+            "a-cypherpunks-manifesto.csf",
+        ])
+        .assert()
+        .success()
+        .stdout(predicate::eq(
+            b"8E8C33FA4626337976D97978069C0C348DD82C19\n" as &[u8]));
+}

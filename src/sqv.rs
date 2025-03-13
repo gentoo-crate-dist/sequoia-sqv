@@ -313,9 +313,10 @@ fn main() -> Result<()> {
         assert!(cli.message || cli.cleartext);
         let mut sink: Box<dyn io::Write> = if let Some(n) = &cli.output {
             Box::new(std::fs::File::options()
-                     .write(true)
-                     .create_new(true)
-                     .open(n)?)
+                .write(true)
+                .create(cli.overwrite) // choose create() when allowing overwrite
+                .create_new(!cli.overwrite) // else insist on new file
+                .open(n)?)
         } else {
             Box::new(io::stdout())
         };

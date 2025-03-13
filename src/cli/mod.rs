@@ -122,6 +122,12 @@ pub struct SqvCommand {
     pub output: Option<PathBuf>,
 
     #[clap(
+        long,
+        help = "Overwrite the output file if it already exists"
+        )]
+    pub overwrite: bool,
+
+    #[clap(
         long = "signature-file",
         value_name = "SIG",
         help = "Verify a detached signature file"
