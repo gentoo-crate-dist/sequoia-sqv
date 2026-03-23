@@ -154,11 +154,7 @@ impl Time {
             Some(digits) => {
                 let (positive, count) = match digits.parse::<i64>() {
                     Ok(count) => {
-                        if count < 0 {
-                            (false, count.abs() as u64)
-                        } else {
-                            (true, count as u64)
-                        }
+                        (!count.is_negative(), count.unsigned_abs())
                     }
                     Err(err) => return Err(err).context(
                         format!("Value '{}' is out of range", digits)
