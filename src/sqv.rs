@@ -1,7 +1,7 @@
-/// A simple signature verification program.
-///
-/// See https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=872271 for
-/// the motivation.
+//! A simple signature verification program.
+//!
+//! See https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=872271 for
+//! the motivation.
 
 use std::io;
 use std::process::exit;
