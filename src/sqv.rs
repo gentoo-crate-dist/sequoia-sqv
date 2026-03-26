@@ -1,7 +1,7 @@
-/// A simple signature verification program.
-///
-/// See https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=872271 for
-/// the motivation.
+//! A simple signature verification program.
+//!
+//! See https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=872271 for
+//! the motivation.
 
 use std::io;
 use std::process::exit;
@@ -361,7 +361,7 @@ fn parse_iso8601(s: &str, pad_date_with: chrono::NaiveTime)
             }
         } else {
             if let Ok(d) = chrono::NaiveDateTime::parse_from_str(s, *f) {
-                return Ok(DateTime::from_utc(d, Utc));
+                return Ok(DateTime::from_naive_utc_and_offset(d, Utc));
             }
         }
     }
@@ -375,7 +375,7 @@ fn parse_iso8601(s: &str, pad_date_with: chrono::NaiveTime)
         "%Y",
     ] {
         if let Ok(d) = chrono::NaiveDate::parse_from_str(s, *f) {
-            return Ok(DateTime::from_utc(d.and_time(pad_date_with), Utc));
+            return Ok(DateTime::from_naive_utc_and_offset(d.and_time(pad_date_with), Utc));
         }
     }
     Err(anyhow::anyhow!("Malformed ISO8601 timestamp: {}", s))

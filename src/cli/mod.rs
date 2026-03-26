@@ -1,5 +1,3 @@
-/// Command-line parser for sqv.
-
 use std::path::PathBuf;
 
 use clap::{Command, CommandFactory, Parser};
