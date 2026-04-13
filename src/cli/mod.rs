@@ -207,6 +207,37 @@ pub struct SqvCommand {
     pub verbose: bool,
 
     #[clap(
+        long = "time",
+        allow_hyphen_values = true,
+        value_name = "TIMESTAMP",
+        help = "Set the reference time as an ISO 8601 formatted timestamp",
+        long_help = "\
+Set the reference time as an ISO 8601 formatted timestamp or \
+relative offset.
+
+This sets the reference time for the sqv session.  Normally, \
+sqv uses the current time.  This argument allows you to use a \
+different time.
+
+This time is also used as the default value for --not-after and \
+--policy-as-of, and it is passed to the signature verifier as \
+the reference time for evaluating whether keys and certificates \
+are valid.
+
+TIME is interpreted as an ISO 8601 timestamp.  To set the \
+time to January 1, 2007 at midnight UTC, you can do:
+
+$ sqv --time 20070101 --keyring keyring.pgp --message msg.pgp
+
+An offset can also be used.  For instance, to set the time to \
+one year ago, do:
+
+$ sqv --time -1y --keyring keyring.pgp --message msg.pgp
+"
+    )]
+    pub time: Option<time::Time>,
+
+    #[clap(
         long = "policy-as-of",
         allow_hyphen_values = true,
         value_name = "TIMESTAMP",

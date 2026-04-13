@@ -269,6 +269,15 @@ fn main() -> Result<()> {
         exit(2);
     }
 
+    // Parse the --time argument to get the session reference time.
+    // If not given, defaults to the current time.
+    let ref_time = cli.time.as_ref()
+        .map(|at| at.to_system_time(std::time::SystemTime::now()))
+        .transpose()
+        .with_context(|| format!("Error parsing --time: {}",
+                                 cli.time.as_ref().unwrap()))?
+        .unwrap_or_else(std::time::SystemTime::now);
+
     let not_before: Option<std::time::SystemTime> =
         if let Some(t) = cli.not_before {
             Some(parse_iso8601(&t, chrono::NaiveTime::from_hms_opt(0, 0, 0).unwrap())
@@ -284,16 +293,16 @@ fn main() -> Result<()> {
                  .into())
         } else {
             None
-        }.unwrap_or_else(std::time::SystemTime::now);
+        }.unwrap_or(ref_time);
 
     let h = VHelper::new(good_threshold, not_before, not_after, cli.keyring);
 
     let t = cli.policy_as_of.as_ref()
-        .map(|at| at.to_system_time(std::time::SystemTime::now()))
+        .map(|at| at.to_system_time(ref_time))
         .transpose()
         .with_context(|| format!("Error parsing --policy-as-of: {}",
                                  cli.policy_as_of.unwrap()))?
-        .unwrap_or_else(std::time::SystemTime::now);
+        .unwrap_or(ref_time);
 
     let mut p = sequoia_policy_config::ConfiguredStandardPolicy::at(t);
     p.parse_default_config()?;
@@ -306,7 +315,7 @@ fn main() -> Result<()> {
 
         let mut v =
             DetachedVerifierBuilder::from_file(sig)?
-            .with_policy(&p, None, h)?;
+            .with_policy(&p, Some(ref_time), h)?;
         v.verify_file(data)?;
         v.into_helper()
     } else {
@@ -323,7 +332,7 @@ fn main() -> Result<()> {
 
         let mut v =
             VerifierBuilder::from_file(&cli.file)?
-            .with_policy(&p, None, h)?;
+            .with_policy(&p, Some(ref_time), h)?;
         io::copy(&mut v, &mut sink)?;
         v.into_helper()
     };
