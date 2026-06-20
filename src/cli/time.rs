@@ -173,7 +173,10 @@ impl Time {
                     ),
                 };
 
-                (negative, count * factor)
+                (negative,
+                 count.checked_mul(factor).ok_or_else(|| {
+                     anyhow::anyhow!("{} is too large (overflow)", count)
+                 })?)
             }
             None => {
                 return Err(anyhow::anyhow!(
