@@ -2,6 +2,11 @@
 #+TITLE: sequoia-sqv NEWS – history of user-visible changes
 #+STARTUP: content hidestars
 
+* Changes in 1.4
+
+- New option `sqv --overwrite` to force sqv to overwrite the output
+  file, if it exists.
+
 * Changes in 1.3
 
 - This release adds support for RFC 9580.
