@@ -1,6 +1,6 @@
 //! A simple signature verification program.
 //!
-//! See https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=872271 for
+//! See <https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=872271> for
 //! the motivation.
 
 use std::io;
