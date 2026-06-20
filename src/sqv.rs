@@ -3,6 +3,7 @@
 //! See <https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=872271> for
 //! the motivation.
 
+use std::borrow::Cow;
 use std::io;
 use std::process::exit;
 use std::path::PathBuf;
@@ -182,9 +183,16 @@ impl VerificationHelper for VHelper {
                             }
                             Err(MissingKey { sig, .. }) => {
                                 let issuers = sig.get_issuers();
-                                eprintln!("Missing key {:X}, which is needed to \
+                                eprintln!("Missing key {}, which is needed to \
                                            verify signature.",
-                                          issuers.first().unwrap());
+                                          issuers
+                                              .first()
+                                              .map(|issuer| {
+                                                  Cow::Owned(issuer.to_string())
+                                              })
+                                              .unwrap_or_else(|| {
+                                                  Cow::Borrowed("<unknown issuer>")
+                                              }));
                             }
                             Err(UnboundKey { cert, error, .. }) => {
                                 eprintln!("Signing key on {:X} is not bound:",
