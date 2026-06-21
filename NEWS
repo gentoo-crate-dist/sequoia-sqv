@@ -6,6 +6,7 @@
 
 - New option `sqv --overwrite` to force sqv to overwrite the output
   file, if it exists.
+- Detect keybox files and display a more helpful error message.
 
 * Changes in 1.3
 

@@ -4,9 +4,10 @@
 //! the motivation.
 
 use std::borrow::Cow;
+use std::io::Read;
 use std::io;
-use std::process::exit;
 use std::path::PathBuf;
+use std::process::exit;
 
 use chrono::{DateTime, offset::Utc};
 use anyhow::Context;
@@ -81,6 +82,21 @@ impl VerificationHelper for VHelper {
         // Load relevant keys from the keyring.
         for filename in self.keyrings.iter() {
             for cert in CertParser::from_file(filename)
+                .map_err(|err| {
+                    let Ok(mut file) = std::fs::File::open(filename) else {
+                        return err;
+                    };
+                    let mut buffer = [0; 0x0C];
+                    let Ok(()) = file.read_exact(&mut buffer) else {
+                        return err;
+                    };
+                    if buffer.ends_with(b"KBXf") {
+                        anyhow::anyhow!("File appears to be in keybox format, \
+                                         which is not supported")
+                    } else {
+                        err
+                    }
+                })
                 .with_context(|| format!("Failed to parse keyring {:?}",
                                          filename))?
                 .unvalidated_cert_filter(|cert, _| {
