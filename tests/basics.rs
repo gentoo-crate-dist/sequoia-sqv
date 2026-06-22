@@ -210,6 +210,21 @@ fn inline_signed_message() {
         .success()
         .stdout(predicate::eq(
             b"8E8C33FA4626337976D97978069C0C348DD82C19\n" as &[u8]));
+
+    // Write to /dev/null without using --overwrite.
+    Command::cargo_bin("sqv").expect("have sqv")
+        .current_dir(path::Path::new("tests").join("data"))
+        .args(&[
+            "--keyring",
+            "emmelie-dorothea-dina-samantha-awina-ed25519.pgp",
+            "--output", "/dev/null",
+            "--message",
+            "a-cypherpunks-manifesto.pgp",
+        ])
+        .assert()
+        .success()
+        .stdout(predicate::eq(
+            b"8E8C33FA4626337976D97978069C0C348DD82C19\n" as &[u8]));
 }
 
 /// Verifies an cleartext-signed message.
