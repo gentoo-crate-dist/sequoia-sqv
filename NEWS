@@ -7,6 +7,8 @@
 - New option `sqv --overwrite` to force sqv to overwrite the output
   file, if it exists.
 - Detect keybox files and display a more helpful error message.
+- Support using `-` to mean `sqv` should read from `stdin` instead of
+  a file.
 
 * Changes in 1.3
 
