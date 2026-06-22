@@ -5,7 +5,7 @@ stages:
   - deploy
 
 variables:
-  RUN_WINDOWS: false
+  RUN_WINDOWS: true
 
 include:
   - component: "gitlab.com/sequoia-pgp/common-ci/sequoia-pipeline@main"
