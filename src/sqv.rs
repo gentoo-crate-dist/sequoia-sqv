@@ -20,7 +20,10 @@ use sequoia_openpgp as openpgp;
 use crate::openpgp::{
     Cert,
     KeyHandle,
+    Packet,
     Result,
+    parse::PacketParser,
+    parse::PacketParserResult,
     parse::Parse,
 };
 use crate::openpgp::parse::stream::{
@@ -371,7 +374,24 @@ fn main() -> Result<()> {
         } else {
             DetachedVerifierBuilder::from_file(sig)?
         };
-        let mut v = v.with_policy(&p, Some(ref_time), h)?;
+        let mut v = v.with_policy(&p, Some(ref_time), h)
+            .map_err(|err| {
+                // Check if the user reversed the arguments.
+                if data.as_os_str().as_encoded_bytes() != b"-" {
+                    if let Ok(ppr) = PacketParser::from_file(data) {
+                        if let PacketParserResult::Some(pp) = ppr {
+                            if let Packet::Signature(_) = pp.packet {
+                                eprintln!(
+                                    "Hint: Data file ({}) appears to contain \
+                                     an OpenPGP signature, perhaps you \
+                                     reversed the arguments.",
+                                    data.display());
+                            }
+                        }
+                    }
+                }
+                err
+            })?;
         if data.as_os_str().as_encoded_bytes() == b"-" {
             v.verify_reader(stdin("FILE")?)?;
         } else {
