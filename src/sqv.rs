@@ -381,10 +381,29 @@ fn main() -> Result<()> {
     } else {
         assert!(cli.message || cli.cleartext);
         let mut sink: Box<dyn io::Write> = if let Some(n) = &cli.output {
+            let mut overwrite = cli.overwrite;
+
+            // Imply --overwrite if writing to a special file.
+            #[cfg(unix)]
+            if ! overwrite {
+                use std::os::unix::fs::FileTypeExt;
+
+                if let Ok(metadata) = std::fs::metadata(n) {
+                    let ft = metadata.file_type();
+                    if ft.is_char_device()
+                        || ft.is_block_device()
+                        || ft.is_fifo()
+                        || ft.is_socket()
+                    {
+                        overwrite = true;
+                    }
+                }
+            }
+
             Box::new(std::fs::File::options()
                 .write(true)
-                .create(cli.overwrite) // choose create() when allowing overwrite
-                .create_new(!cli.overwrite) // else insist on new file
+                .create(overwrite) // choose create() when allowing overwrite
+                .create_new(!overwrite) // else insist on new file
                 .open(n)?)
         } else {
             Box::new(io::stdout())
