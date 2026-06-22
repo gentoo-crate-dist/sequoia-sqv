@@ -94,17 +94,17 @@ could not be verified.
     after_help = "Examples:
 
 # Verify a detached signature.
-$ sqv --keyring=trusted.certs --signature-file=document.sig \\
+$ sqv --keyring=trusted.pgp --signature-file=document.sig \\
                               document.txt
 
 # Verify a detached signature, legacy interface.
-$ sqv --keyring=trusted.certs document.sig document.txt
+$ sqv --keyring=trusted.pgp document.sig document.txt
 
 # Verify a signed message.
-$ sqv --keyring trusted.certs --message document.pgp
+$ sqv --keyring trusted.pgp --message document.pgp
 
 # Verify a message using the Cleartext Signature Framework.
-$ sqv --keyring trusted.certs --cleartext document.pgp
+$ sqv --keyring trusted.pgp --cleartext document.pgp
 ",
     arg_required_else_help = true,
     disable_colored_help = true,
@@ -112,12 +112,19 @@ $ sqv --keyring trusted.certs --cleartext document.pgp
 #[clap(group(clap::ArgGroup::new("kind")
              .args(&["detached", "message", "cleartext"]).required(false)))]
 pub struct SqvCommand {
-    /// Write to FILE or stdout if omitted
     #[clap(
         long,
         value_name = "FILE",
         conflicts_with_all = ["detached", "data"],
         required_unless_present_any = ["detached", "data"],
+        help = "Write to FILE",
+        long_help = "\
+Write to FILE.
+
+This is required when verifying an inline signed message (using \
+--message) and a cleartext signed message (using --cleartext) and is \
+forbidden when verifying a detached signature (using
+--signature-file)."
     )]
     pub output: Option<PathBuf>,
 
