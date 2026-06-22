@@ -112,12 +112,19 @@ $ sqv --keyring trusted.pgp --cleartext document.pgp
 #[clap(group(clap::ArgGroup::new("kind")
              .args(&["detached", "message", "cleartext"]).required(false)))]
 pub struct SqvCommand {
-    /// Write to FILE or stdout if omitted
     #[clap(
         long,
         value_name = "FILE",
         conflicts_with_all = ["detached", "data"],
         required_unless_present_any = ["detached", "data"],
+        help = "Write to FILE",
+        long_help = "\
+Write to FILE.
+
+This is required when verifying an inline signed message (using \
+--message) and a cleartext signed message (using --cleartext) and is \
+forbidden when verifying a detached signature (using
+--signature-file)."
     )]
     pub output: Option<PathBuf>,
 
