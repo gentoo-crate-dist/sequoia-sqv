@@ -30,6 +30,51 @@ fn detached() {
         ])
         .assert()
         .failure();
+
+    // Read the signature from stdin.
+    Command::cargo_bin("sqv").expect("have sqv")
+        .current_dir(path::Path::new("tests").join("data"))
+        .pipe_stdin("tests/data/a-cypherpunks-manifesto.txt.ed25519.sig").expect("can read file")
+        .args(&[
+            "--keyring",
+            "emmelie-dorothea-dina-samantha-awina-ed25519.pgp",
+            "--signature-file=-",
+            "a-cypherpunks-manifesto.txt",
+        ])
+        .assert()
+        .success()
+        .stdout(predicate::eq(
+            b"8E8C33FA4626337976D97978069C0C348DD82C19\n" as &[u8]));
+
+    // Read the data from stdin.
+    Command::cargo_bin("sqv").expect("have sqv")
+        .current_dir(path::Path::new("tests").join("data"))
+        .pipe_stdin("tests/data/a-cypherpunks-manifesto.txt").expect("can read file")
+        .args(&[
+            "--keyring",
+            "emmelie-dorothea-dina-samantha-awina-ed25519.pgp",
+            "--signature-file=a-cypherpunks-manifesto.txt.ed25519.sig",
+            "-",
+        ])
+        .assert()
+        .success()
+        .stdout(predicate::eq(
+            b"8E8C33FA4626337976D97978069C0C348DD82C19\n" as &[u8]));
+
+    // Read the keyring from stdin.
+    Command::cargo_bin("sqv").expect("have sqv")
+        .current_dir(path::Path::new("tests").join("data"))
+        .pipe_stdin("tests/data/emmelie-dorothea-dina-samantha-awina-ed25519.pgp").expect("can read file")
+        .args(&[
+            "--keyring",
+            "-",
+            "--signature-file=a-cypherpunks-manifesto.txt.ed25519.sig",
+            "a-cypherpunks-manifesto.txt",
+        ])
+        .assert()
+        .success()
+        .stdout(predicate::eq(
+            b"8E8C33FA4626337976D97978069C0C348DD82C19\n" as &[u8]));
 }
 
 /// Verifies a detached signature using the legacy form.
@@ -40,6 +85,51 @@ fn detached_legacy() {
         .args(&[
             "--keyring",
             "emmelie-dorothea-dina-samantha-awina-ed25519.pgp",
+            "a-cypherpunks-manifesto.txt.ed25519.sig",
+            "a-cypherpunks-manifesto.txt",
+        ])
+        .assert()
+        .success()
+        .stdout(predicate::eq(
+            b"8E8C33FA4626337976D97978069C0C348DD82C19\n" as &[u8]));
+
+    // Read the signature from stdin.
+    Command::cargo_bin("sqv").expect("have sqv")
+        .current_dir(path::Path::new("tests").join("data"))
+        .pipe_stdin("tests/data/a-cypherpunks-manifesto.txt.ed25519.sig").expect("can read file")
+        .args(&[
+            "--keyring",
+            "emmelie-dorothea-dina-samantha-awina-ed25519.pgp",
+            "-",
+            "a-cypherpunks-manifesto.txt",
+        ])
+        .assert()
+        .success()
+        .stdout(predicate::eq(
+            b"8E8C33FA4626337976D97978069C0C348DD82C19\n" as &[u8]));
+
+    // Read the data from stdin.
+    Command::cargo_bin("sqv").expect("have sqv")
+        .current_dir(path::Path::new("tests").join("data"))
+        .pipe_stdin("tests/data/a-cypherpunks-manifesto.txt").expect("can read file")
+        .args(&[
+            "--keyring",
+            "emmelie-dorothea-dina-samantha-awina-ed25519.pgp",
+            "a-cypherpunks-manifesto.txt.ed25519.sig",
+            "-",
+        ])
+        .assert()
+        .success()
+        .stdout(predicate::eq(
+            b"8E8C33FA4626337976D97978069C0C348DD82C19\n" as &[u8]));
+
+    // Read the keyring from stdin.
+    Command::cargo_bin("sqv").expect("have sqv")
+        .current_dir(path::Path::new("tests").join("data"))
+        .pipe_stdin("tests/data/emmelie-dorothea-dina-samantha-awina-ed25519.pgp").expect("can read file")
+        .args(&[
+            "--keyring",
+            "-",
             "a-cypherpunks-manifesto.txt.ed25519.sig",
             "a-cypherpunks-manifesto.txt",
         ])
@@ -85,6 +175,41 @@ fn inline_signed_message() {
         ])
         .assert()
         .failure();
+
+    // Read the message from stdin.
+    Command::cargo_bin("sqv").expect("have sqv")
+        .current_dir(path::Path::new("tests").join("data"))
+        .pipe_stdin("tests/data/a-cypherpunks-manifesto.pgp").expect("can read file")
+        .args(&[
+            "--overwrite",
+            "--keyring",
+            "emmelie-dorothea-dina-samantha-awina-ed25519.pgp",
+            "--output", &auth,
+            "--message",
+            "-",
+        ])
+        .assert()
+        .success()
+        .stdout(predicate::eq(
+            b"8E8C33FA4626337976D97978069C0C348DD82C19\n" as &[u8]));
+
+
+    // Read the keyring from stdin.
+    Command::cargo_bin("sqv").expect("have sqv")
+        .current_dir(path::Path::new("tests").join("data"))
+        .pipe_stdin("tests/data/emmelie-dorothea-dina-samantha-awina-ed25519.pgp").expect("can read file")
+        .args(&[
+            "--overwrite",
+            "--keyring",
+            "-",
+            "--output", &auth,
+            "--message",
+            "a-cypherpunks-manifesto.pgp",
+        ])
+        .assert()
+        .success()
+        .stdout(predicate::eq(
+            b"8E8C33FA4626337976D97978069C0C348DD82C19\n" as &[u8]));
 }
 
 /// Verifies an cleartext-signed message.
@@ -98,6 +223,40 @@ fn cleartext_signed_message() {
         .args(&[
             "--keyring",
             "emmelie-dorothea-dina-samantha-awina-ed25519.pgp",
+            "--output", &auth,
+            "--cleartext",
+            "a-cypherpunks-manifesto.csf",
+        ])
+        .assert()
+        .success()
+        .stdout(predicate::eq(
+            b"8E8C33FA4626337976D97978069C0C348DD82C19\n" as &[u8]));
+
+    // Read the message from stdin.
+    Command::cargo_bin("sqv").expect("have sqv")
+        .current_dir(path::Path::new("tests").join("data"))
+        .pipe_stdin("tests/data/a-cypherpunks-manifesto.csf").expect("can read file")
+        .args(&[
+            "--overwrite",
+            "--keyring",
+            "emmelie-dorothea-dina-samantha-awina-ed25519.pgp",
+            "--output", &auth,
+            "--cleartext",
+            "-",
+        ])
+        .assert()
+        .success()
+        .stdout(predicate::eq(
+            b"8E8C33FA4626337976D97978069C0C348DD82C19\n" as &[u8]));
+
+    // Read the keyring from stdin.
+    Command::cargo_bin("sqv").expect("have sqv")
+        .current_dir(path::Path::new("tests").join("data"))
+        .pipe_stdin("tests/data/emmelie-dorothea-dina-samantha-awina-ed25519.pgp").expect("can read file")
+        .args(&[
+            "--overwrite",
+            "--keyring",
+            "-",
             "--output", &auth,
             "--cleartext",
             "a-cypherpunks-manifesto.csf",

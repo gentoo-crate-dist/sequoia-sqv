@@ -8,6 +8,7 @@ use std::io::Read;
 use std::io;
 use std::path::PathBuf;
 use std::process::exit;
+use std::sync::OnceLock;
 
 use chrono::{DateTime, offset::Utc};
 use anyhow::Context;
@@ -34,6 +35,28 @@ use crate::openpgp::parse::stream::{
 use crate::openpgp::cert::prelude::*;
 
 mod cli;
+
+/// Returns stdin.
+///
+/// It is standard to `-` to mean read from `stdin` instead of a file.
+/// Because it is almost always an error to use `-` more than once,
+/// this errors out with a helpful error message in this case.
+fn stdin(option: &'static str) -> Result<std::io::Stdin> {
+    static OPTION: OnceLock<&'static str> = OnceLock::new();
+
+    match OPTION.set(option) {
+        Ok(()) => {
+            Ok(std::io::stdin())
+        }
+        Err(_) => {
+            let previous = OPTION.get().unwrap();
+            Err(anyhow::anyhow!(
+                "Can't use - to read from stdin multiple times \
+                 (used with {} and {})",
+                previous, option))
+        }
+    }
+}
 
 struct VHelper {
     not_before: Option<std::time::SystemTime>,
@@ -81,7 +104,12 @@ impl VerificationHelper for VHelper {
 
         // Load relevant keys from the keyring.
         for filename in self.keyrings.iter() {
-            for cert in CertParser::from_file(filename)
+            let parser = if filename.as_os_str().as_encoded_bytes() == b"-" {
+                CertParser::from_reader(stdin("--keyring")?)
+            } else {
+                CertParser::from_file(filename)
+            };
+            let parser = parser
                 .map_err(|err| {
                     let Ok(mut file) = std::fs::File::open(filename) else {
                         return err;
@@ -98,7 +126,8 @@ impl VerificationHelper for VHelper {
                     }
                 })
                 .with_context(|| format!("Failed to parse keyring {:?}",
-                                         filename))?
+                                         filename))?;
+            for cert in parser
                 .unvalidated_cert_filter(|cert, _| {
                     // We don't skip keys that are valid (not revoked,
                     // alive, etc.) so that
@@ -337,10 +366,17 @@ fn main() -> Result<()> {
         let sig = cli.detached.as_ref().unwrap_or(&cli.file);
         let data = cli.data.as_ref().unwrap_or(&cli.file);
 
-        let mut v =
+        let v = if sig.as_os_str().as_encoded_bytes() == b"-" {
+            DetachedVerifierBuilder::from_reader(stdin("--signature-file")?)?
+        } else {
             DetachedVerifierBuilder::from_file(sig)?
-            .with_policy(&p, Some(ref_time), h)?;
-        v.verify_file(data)?;
+        };
+        let mut v = v.with_policy(&p, Some(ref_time), h)?;
+        if data.as_os_str().as_encoded_bytes() == b"-" {
+            v.verify_reader(stdin("FILE")?)?;
+        } else {
+            v.verify_file(data)?;
+        }
         v.into_helper()
     } else {
         assert!(cli.message || cli.cleartext);
@@ -354,9 +390,12 @@ fn main() -> Result<()> {
             Box::new(io::stdout())
         };
 
-        let mut v =
+        let v = if cli.file.as_os_str().as_encoded_bytes() == b"-" {
+            VerifierBuilder::from_reader(stdin("FILE")?)?
+        } else {
             VerifierBuilder::from_file(&cli.file)?
-            .with_policy(&p, Some(ref_time), h)?;
+        };
+        let mut v = v.with_policy(&p, Some(ref_time), h)?;
         io::copy(&mut v, &mut sink)?;
         v.into_helper()
     };
