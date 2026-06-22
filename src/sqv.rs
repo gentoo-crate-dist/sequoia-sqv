@@ -100,6 +100,10 @@ impl VHelper {
 
 impl VerificationHelper for VHelper {
     fn get_certs(&mut self, ids: &[crate::KeyHandle]) -> Result<Vec<Cert>> {
+        eprintln!("Alleged signers: {}",
+                  ids.iter().map(|id| id.to_string())
+                  .collect::<Vec<_>>().join(", "));
+
         let mut certs = Vec::with_capacity(ids.len());
 
         // Load relevant keys from the keyring.
@@ -131,7 +135,10 @@ impl VerificationHelper for VHelper {
                 .unvalidated_cert_filter(|cert, _| {
                     // We don't skip keys that are valid (not revoked,
                     // alive, etc.) so that
-                    cert.keys().key_handles(ids.iter()).next().is_some()
+                    eprintln!("Considering {}", cert.keys().map(|k| k.key().fingerprint().to_string()).collect::<Vec<_>>().join(", "));
+                    let result = cert.keys().key_handles(ids.iter()).next().is_some();
+                    eprintln!("  {}skipping", if result { "NOT " } else { "" });
+                    result
                 })
             {
                 certs.push(cert.with_context(|| {
@@ -181,11 +188,13 @@ impl VerificationHelper for VHelper {
 
         for layer in structure.into_iter() {
             match layer {
-                MessageLayer::SignatureGroup { results } =>
+                MessageLayer::SignatureGroup { results } => {
+                    eprintln!("signature group");
                     for result in results {
                         self.total += 1;
                         match result {
                             Ok(GoodChecksum { sig, ka, .. }) => {
+                                eprintln!("  good signature from: {} / {}", ka.cert().fingerprint(), ka.key().fingerprint());
                                 match (sig.signature_creation_time(),
                                                 self.not_before,
                                                 self.not_after)
@@ -275,10 +284,13 @@ impl VerificationHelper for VHelper {
                             }
                         }
                     }
+                }
                 MessageLayer::Compression { .. } => (),
                 _ => unreachable!(),
             }
         }
+
+        eprintln!("{} signers", signers.len());
 
         // Dedup the keys so that it is not possible to exceed the
         // threshold by duplicating signatures or by using the same
