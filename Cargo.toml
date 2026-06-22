@@ -64,3 +64,6 @@ crypto-rust = ["sequoia-openpgp/crypto-rust"]
 suspicious = { level = "deny", priority = -1 }
 style = { level = "allow", priority = -1 }
 complexity = { level = "allow", priority = -1 }
+
+[patch.crates-io]
+sequoia-openpgp = { git = "https://gitlab.com/sequoia-pgp/sequoia.git", branch = "neal/some-tracing" }
