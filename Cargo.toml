@@ -27,7 +27,7 @@ maintenance = { status = "actively-developed" }
 anyhow = "1.0.18"
 chrono = "0.4.10"
 clap = { version = "4", features = ["derive", "string", "wrap_help"] }
-sequoia-openpgp = { version = "2", default-features = false, features = ["compression"] }
+sequoia-openpgp = { version = "2.4", default-features = false, features = ["compression"] }
 sequoia-policy-config = "0.8"
 
 [build-dependencies]
@@ -36,7 +36,7 @@ chrono = "0.4.10"
 clap = { version = "4", features = ["derive", "string", "wrap_help"] }
 clap_complete = { version = "4"}
 sequoia-man = "0.3"
-sequoia-openpgp = { version = "2", default-features = false, features = ["compression"] }
+sequoia-openpgp = { version = "2.4", default-features = false, features = ["compression"] }
 sequoia-policy-config = "0.8"
 
 [dev-dependencies]
