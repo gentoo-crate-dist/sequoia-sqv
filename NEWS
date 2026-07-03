@@ -2,6 +2,10 @@
 #+TITLE: sequoia-sqv NEWS – history of user-visible changes
 #+STARTUP: content hidestars
 
+* Changes in 1.5
+
+- Enable PQC support.
+
 * Changes in 1.4
 
 - New option `sqv --overwrite` to force sqv to overwrite the output
